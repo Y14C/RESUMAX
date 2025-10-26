@@ -1,0 +1,13 @@
+# =============================================================================
+# RESUMAX PROJECT .GITIGNORE - ESSENTIALPACKAGE ONLY
+# =============================================================================
+# This configuration ensures ONLY the essentialpackage folder is committed
+
+# Ignore everything at root level
+/*
+
+# Exception: Include essentialpackage folder and its contents
+!essentialpackage/
+
+# Exception: Include .gitignore itself
+!.gitignore
