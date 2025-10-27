@@ -726,7 +726,7 @@ The launcher automatically starts both frontend and backend services, perfect fo
 
 For first-time setup, download our automated setup script:
 
-1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/your-username/resumax/releases/latest)
+1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/y14c/resumax/releases/latest)
 2. **Run** the script - it handles all frontend dependencies automatically
 3. **Start development** after script completion
 

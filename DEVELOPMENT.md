@@ -40,7 +40,7 @@ Resumax is an Electron-based desktop application that uses AI to convert resume 
 
 For first-time setup, download our automated setup script:
 
-1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/your-username/resumax/releases/latest)
+1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/y14c/resumax/releases/latest)
 2. **Run** the script (double-click or run from command prompt)
 3. **Follow** the interactive prompts
 

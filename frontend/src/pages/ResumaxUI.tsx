@@ -1427,7 +1427,7 @@ const ResumaxUI: React.FC = () => {
             Created by <span style={{ color: '#ec4899' }}> YC14</span>
           </p>
           <a
-            href="https://github.com/Y14C/RESUMAX.git"
+            href="https://github.com/y14c/resumax"
             target="_blank"
             rel="noopener noreferrer"
             style={{

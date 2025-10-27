@@ -547,7 +547,7 @@ Pillow>=10.4.0
 
 Use our automated setup script for the fastest installation:
 
-1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/your-username/resumax/releases/latest)
+1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/y14c/resumax/releases/latest)
 2. **Run** the script - it handles everything automatically
 
 #### Manual Installation (All Platforms)
@@ -611,7 +611,7 @@ The launcher automatically starts the backend server along with the frontend, pe
 
 For first-time setup, download our automated setup script:
 
-1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/your-username/resumax/releases/latest)
+1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/y14c/resumax/releases/latest)
 2. **Run** the script - it handles all backend dependencies automatically
 3. **Start the server** after script completion
 
