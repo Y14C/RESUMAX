@@ -1,0 +1,148 @@
+\documentclass[11pt,a4paper]{article}
+% Modern design packages
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{multicol}
+
+% Modern color scheme
+\definecolor{primary}{RGB}{59, 130, 246}
+\definecolor{secondary}{RGB}{107, 114, 128}
+\definecolor{accent}{RGB}{236, 72, 153}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=primary,
+    pdfborder={0 0 0},
+}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Modern section formatting
+\titleformat{\section}{\large\bfseries\color{primary}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{secondary}}{}{0em}{}
+
+\begin{document}
+
+% Modern Header with gradient effect
+\begin{center}
+    {\Huge\bfseries\color{primary} [FULL\_NAME]}\\[0.3cm]
+    {\large\color{secondary} [JOB\_TITLE]} | {\large\color{secondary} [LOCATION]}\\[0.2cm]
+    {\normalsize\color{secondary} \href{mailto:[EMAIL]}{[EMAIL]} | \href{[LINKEDIN\\_URL]}{[LINKEDIN\\_DISPLAY]} | \href{[PORTFOLIO\\_URL]}{[PORTFOLIO\\_DISPLAY]}}\\[0.3cm]
+    \rule{\textwidth}{1pt}
+\end{center}
+
+\vspace{8pt}
+
+% PROFESSIONAL SUMMARY
+\section{Professional Summary}
+\vspace{4pt}
+[PROFESSIONAL_SUMMARY\_TEXT]
+
+\vspace{8pt}
+
+% EDUCATION
+\section{Education}
+\textbf{[DEGREE\_1]} | [INSTITUTION\_1]\\[0.2cm]
+\textit{[LOCATION\_1]} | GPA: [GPA\_1] | [DATES\_1]\\[0.3cm]
+
+\textbf{[DEGREE\_2]} | [INSTITUTION\_2]\\[0.2cm]
+\textit{[LOCATION\_2]} | GPA: [GPA\_2] | [DATES\_2]\\[0.3cm]
+
+\textbf{[DEGREE\_3]} | [INSTITUTION\_3]\\[0.2cm]
+\textit{[LOCATION\_3]} | GPA: [GPA\_3] | [DATES\_3]\\[0.3cm]
+
+\vspace{8pt}
+
+% WORK EXPERIENCE
+\section{Work Experience}
+\textbf{[JOB_TITLE\_1]} | \textit{[COMPANY\_1] | [LOCATION\_1]} | [DATES\_1]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_1\_1]
+    \item [RESPONSIBILITY_1\_2]
+    \item [RESPONSIBILITY_1\_3]
+\end{itemize}
+
+\textbf{[JOB_TITLE\_2]} | \textit{[COMPANY\_2] | [LOCATION\_2]} | [DATES\_2]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_2\_1]
+    \item [RESPONSIBILITY_2\_2]
+    \item [RESPONSIBILITY_2\_3]
+\end{itemize}
+
+\textbf{[JOB_TITLE\_3]} | \textit{[COMPANY\_3] | [LOCATION\_3]} | [DATES\_3]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_3\_1]
+    \item [RESPONSIBILITY_3\_2]
+    \item [RESPONSIBILITY_3\_3]
+\end{itemize}
+
+\vspace{8pt}
+
+% TECHNICAL SKILLS - Modern two-column layout
+\section{Technical Skills}
+\begin{multicols}{2}
+\textbf{Programming Languages:} [LANGUAGES\_LIST]\\[0.2cm]
+\textbf{Frameworks \& Libraries:} [FRAMEWORKS\_LIST]\\[0.2cm]
+\textbf{Databases:} [DATABASES\_LIST]\\[0.2cm]
+\textbf{Cloud \& DevOps:} [CLOUD_DEVOPS\_LIST]\\[0.2cm]
+\textbf{Tools \& Technologies:} [TOOLS\_LIST]\\[0.2cm]
+\end{multicols}
+
+\vspace{8pt}
+
+% PROJECTS
+\section{Projects}
+\textbf{[PROJECT_TITLE\_1]} | \textit{[PROJECT_TECH\_1] | [PROJECT_DATES\_1]}\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_1\_1]
+    \item [PROJECT_DESCRIPTION_1\_2]
+    \item [PROJECT_DESCRIPTION_1\_3]
+\end{itemize}
+
+\textbf{[PROJECT_TITLE\_2]} | \textit{[PROJECT_TECH\_2] | [PROJECT_DATES\_2]}\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_2\_1]
+    \item [PROJECT_DESCRIPTION_2\_2]
+    \item [PROJECT_DESCRIPTION_2\_3]
+\end{itemize}
+
+\textbf{[PROJECT_TITLE\_3]} | \textit{[PROJECT_TECH\_3] | [PROJECT_DATES\_3]}\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_3\_1]
+    \item [PROJECT_DESCRIPTION_3\_2]
+    \item [PROJECT_DESCRIPTION_3\_3]
+\end{itemize}
+
+\vspace{8pt}
+
+% CERTIFICATIONS
+\section{Certifications}
+\textbf{[CERTIFICATION_NAME\_1]} | \textit{[CERTIFICATION_ISSUER\_1] | [CERTIFICATION_DATE\_1]}\\[0.2cm]
+\textbf{[CERTIFICATION_NAME\_2]} | \textit{[CERTIFICATION_ISSUER\_2] | [CERTIFICATION_DATE\_2]}\\[0.2cm]
+\textbf{[CERTIFICATION_NAME\_3]} | \textit{[CERTIFICATION_ISSUER\_3] | [CERTIFICATION_DATE\_3]}\\[0.2cm]
+
+\vspace{8pt}
+
+% LANGUAGES
+\section{Languages}
+\textbf{[LANGUAGE\_1]} | \textit{[PROFICIENCY\_1]}\\[0.2cm]
+\textbf{[LANGUAGE\_2]} | \textit{[PROFICIENCY\_2]}\\[0.2cm]
+
+\vspace{8pt}
+
+% ACHIEVEMENTS
+\section{Achievements}
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [ACHIEVEMENT\_1]
+    \item [ACHIEVEMENT\_2]
+    \item [ACHIEVEMENT\_3]
+\end{itemize}
+
+\end{document}

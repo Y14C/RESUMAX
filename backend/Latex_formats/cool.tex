@@ -1,0 +1,158 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Template: Curriculum Vitae
+%
+% Source: http://www.howtotex.com/
+% Feel free to distribute this template, but please keep the
+% referal to HowToTeX.com.
+% Date: July 2011
+% 
+% Author of Anti-CV: Stephen Fay
+% Fork on github https://github.com/dcxSt/anti-cv
+% 
+
+\documentclass[11pt,a4paper]{article} % Standard article class
+							
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage{amsmath,amsfonts,amsthm}     % Math packages
+\usepackage{graphicx}                    % Enable pdflatex
+\usepackage[svgnames]{xcolor}            % Colors by their 'svgnames'
+\usepackage[margin=0.5in]{geometry}
+	\textheight=700px                    % Saving trees ;-)
+\usepackage{url}
+
+\usepackage{tikz}
+\usepackage{kpfonts} % for \varheartsuit , also changes font
+\usepackage{color}
+\newcommand*\Hs{\ensuremath{\color{red}\varheartsuit}}
+
+%%% Heart-stab command
+\newcommand{\heartstab}{%
+\begin{tikzpicture}%
+\draw [line width=0.0mm, white] (3.5ex,0.4ex) -- (3.5ex,0.4ex);
+\Large{$\Hs$};
+\draw [line width=0.30mm, black] (-0.7ex,0.7ex) -- (1.2ex,1.2ex);%
+\draw [line width=0.50mm, black] (0.8ex,0.65ex) -- (0.55ex,1.45ex);%
+\end{tikzpicture}%
+}
+
+%%% Squiggly arrow
+\newcommand{\squigarr}{
+{\Large \color{blue}$\rightsquigarrow$}
+}
+
+\usepackage[colorlinks=true,urlcolor=purple]{hyperref}
+
+\frenchspacing              % Better looking spacings after periods
+\pagestyle{empty}           % No pagenumbers/headers/footers
+
+%%% Custom sectioning (sectsty package)
+%%% ------------------------------------------------------------
+\usepackage{sectsty}
+
+\sectionfont{%			            % Change font of \section command
+	\usefont{OT1}{phv}{b}{n}%		% bch-b-n: CharterBT-Bold font
+	\sectionrule{0pt}{0pt}{-5pt}{3pt}}
+
+%%% Macros
+%%% ------------------------------------------------------------
+\newlength{\spacebox}
+\settowidth{\spacebox}{8888888888}			% Box to align text
+\newcommand{\sepspace}{\vspace*{0.5em}}		% Vertical space macro
+
+\newcommand{\MyName}[1]{ % Name
+		\Huge \usefont{OT1}{phv}{b}{n} \hfill #1
+		\par \normalsize \normalfont}
+		
+\newcommand{\MySlogan}[1]{ % Slogan (optional)
+		\large \usefont{OT1}{phv}{m}{n}\hfill \textit{#1}
+		\par \normalsize \normalfont}
+		
+        
+\newcommand{\NameEmailPhoneSiteGithub}[5]{
+        \Huge \usefont{OT1}{phv}{m}{n} \textbf{#1} 
+        \large \usefont{OT1}{phv}{m}{n} \hfill #2\hspace{25pt}#3
+        
+        \textit{Anti Curriculum Vitae}\hfill \textit{website } #4 \hspace{25pt}\textit{github } #5 
+        \par \normalsize \normalfont
+}
+
+\newcommand{\NewPart}[1]{\section*{\uppercase{#1}}}
+
+\newcommand{\SkillsEntry}[2]{      % Same as \PersonalEntry
+		\noindent\hangindent=2em\hangafter=0 % Indentation
+		\parbox{\spacebox}{        % Box to align text
+		\textit{#1}}			   % Entry name (birth, address, etc.)
+		\hspace{1.5em} #2 \par}    % Entry value	
+		
+
+
+%%% Begin Document
+%%% ------------------------------------------------------------
+\begin{document}
+
+\NameEmailPhoneSiteGithub{[FULL\_NAME]}{[PHONE]}{[EMAIL]}{\href{[WEBSITE\_URL]}{[WEBSITE\_DISPLAY]}}{\href{[GITHUB\_URL]}{[GITHUB\_DISPLAY]}}
+
+
+\sepspace
+
+%%% Education
+%%% ------------------------------------------------------------
+\NewPart{Key}{}
+\begin{itemize}
+    \item[\heartstab] Heart-stab. Professional rejections and things I messed up.
+    \item[\squigarr] Squigly arrow. What did I learn? What were the consequences?
+\end{itemize}
+
+\NewPart{Education}{}
+
+\begin{itemize}
+    \item[\heartstab] [EDUCATION\_REJECTION\_1]
+    \item[\squigarr] [EDUCATION\_LESSON\_1]
+    \item[\heartstab] [EDUCATION\_REJECTION\_2]
+    \item[\squigarr] [EDUCATION\_LESSON\_2]
+\end{itemize}
+
+\sepspace
+
+
+
+%%% Work experience
+%%% ------------------------------------------------------------
+\NewPart{Work Experiance}{}
+
+\begin{itemize}
+    \item[\heartstab] [WORK\_REJECTION\_1]
+    \item[\heartstab] [WORK\_REJECTION\_2]
+    \item[\heartstab] [WORK\_REJECTION\_3]
+    \item[\heartstab] [WORK\_REJECTION\_4]
+    \item[\heartstab] [WORK\_REJECTION\_5]
+\end{itemize}
+
+
+
+\sepspace
+
+%%% Skills
+%%% ------------------------------------------------------------
+\NewPart{Skills}{}
+
+\SkillsEntry{[SKILL\_CATEGORY\_1]}{[SKILL\_DESCRIPTION\_1]}
+\SkillsEntry{[SKILL\_CATEGORY\_2]}{[SKILL\_DESCRIPTION\_2]}
+\SkillsEntry{[SKILL\_CATEGORY\_3]}{[SKILL\_DESCRIPTION\_3]}
+
+%%% Achievements
+%%% -----------------------------------------------------------
+
+\NewPart{Achievements and Interests}{}
+
+\begin{itemize}
+    \item[\heartstab] [ACHIEVEMENT\_FAILURE\_1]
+    \item[\heartstab] [ACHIEVEMENT\_FAILURE\_2]
+    \item[\heartstab] [ACHIEVEMENT\_FAILURE\_3]
+    \item[\heartstab] [ACHIEVEMENT\_FAILURE\_4]
+\end{itemize}
+
+
+\end{document}

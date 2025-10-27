@@ -1,0 +1,149 @@
+\documentclass[11pt,a4paper]{article}
+% Two-column layout packages
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{multicol}
+\usepackage{titlesec}
+\usepackage{array}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Section formatting for two-column layout
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\begin{document}
+
+% Header spanning both columns
+\begin{center}
+    {\Huge\bfseries [FULL NAME]}\\[0.3cm]
+    {\large [JOB TITLE]} | {\large [LOCATION]}\\[0.2cm]
+    {\normalsize \href{mailto:[EMAIL]}{[EMAIL]} | \href{[PHONE_URL]}{[PHONE]} | \href{[LINKEDIN_URL]}{[LINKEDIN_DISPLAY]} | \href{[PORTFOLIO_URL]}{[PORTFOLIO_DISPLAY]}}\\[0.3cm]
+    \rule{\textwidth}{1pt}
+\end{center}
+
+\vspace{8pt}
+
+% Two-column layout starts here
+\begin{multicols}{2}
+
+% Left Column
+\section{Professional Summary}
+\vspace{4pt}
+[PROFESSIONAL_SUMMARY_TEXT]
+
+\section{Education}
+\textbf{[DEGREE_1]} | [INSTITUTION_1]\\[0.2cm]
+\textit{[LOCATION_1]} | GPA: [GPA_1] | [DATES_1]\\[0.3cm]
+
+\textbf{[DEGREE_2]} | [INSTITUTION_2]\\[0.2cm]
+\textit{[LOCATION_2]} | GPA: [GPA_2] | [DATES_2]\\[0.3cm]
+
+\textbf{[DEGREE_3]} | [INSTITUTION_3]\\[0.2cm]
+\textit{[LOCATION_3]} | GPA: [GPA_3] | [DATES_3]\\[0.3cm]
+
+\section{Technical Skills}
+\textbf{Programming Languages:} [LANGUAGES_LIST]\\[0.2cm]
+\textbf{Frameworks:} [FRAMEWORKS_LIST]\\[0.2cm]
+\textbf{Databases:} [DATABASES_LIST]\\[0.2cm]
+\textbf{Cloud \& Tools:} [CLOUD_TOOLS_LIST]\\[0.2cm]
+\textbf{Methodologies:} [METHODOLOGIES_LIST]\\[0.2cm]
+
+\section{Certifications}
+\textbf{[CERTIFICATION_NAME_1]} | \textit{[CERTIFICATION_DATE_1]}\\[0.2cm]
+\textbf{[CERTIFICATION_NAME_2]} | \textit{[CERTIFICATION_DATE_2]}\\[0.2cm]
+\textbf{[CERTIFICATION_NAME_3]} | \textit{[CERTIFICATION_DATE_3]}\\[0.2cm]
+
+\section{Languages}
+\textbf{[LANGUAGE_1]} | \textit{[PROFICIENCY_1]}\\[0.2cm]
+\textbf{[LANGUAGE_2]} | \textit{[PROFICIENCY_2]}\\[0.2cm]
+
+\columnbreak
+
+% Right Column
+\section{Work Experience}
+\textbf{[JOB_TITLE_1]} | \textit{[COMPANY_1]}\\[0.2cm]
+[LOCATION_1] | [DATES_1]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_1_1]
+    \item [RESPONSIBILITY_1_2]
+    \item [RESPONSIBILITY_1_3]
+\end{itemize}
+
+\textbf{[JOB_TITLE_2]} | \textit{[COMPANY_2]}\\[0.2cm]
+[LOCATION_2] | [DATES_2]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_2_1]
+    \item [RESPONSIBILITY_2_2]
+    \item [RESPONSIBILITY_2_3]
+\end{itemize}
+
+\textbf{[JOB_TITLE_3]} | \textit{[COMPANY_3]}\\[0.2cm]
+[LOCATION_3] | [DATES_3]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_3_1]
+    \item [RESPONSIBILITY_3_2]
+    \item [RESPONSIBILITY_3_3]
+\end{itemize}
+
+\textbf{[JOB_TITLE_4]} | \textit{[COMPANY_4]}\\[0.2cm]
+[LOCATION_4] | [DATES_4]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [RESPONSIBILITY_4_1]
+    \item [RESPONSIBILITY_4_2]
+    \item [RESPONSIBILITY_4_3]
+\end{itemize}
+
+\section{Projects}
+\textbf{[PROJECT_TITLE_1]} | \textit{[PROJECT_TECH_1]}\\[0.2cm]
+[PROJECT_DATES_1]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_1_1]
+    \item [PROJECT_DESCRIPTION_1_2]
+    \item [PROJECT_DESCRIPTION_1_3]
+\end{itemize}
+
+\textbf{[PROJECT_TITLE_2]} | \textit{[PROJECT_TECH_2]}\\[0.2cm]
+[PROJECT_DATES_2]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_2_1]
+    \item [PROJECT_DESCRIPTION_2_2]
+    \item [PROJECT_DESCRIPTION_2_3]
+\end{itemize}
+
+\textbf{[PROJECT_TITLE_3]} | \textit{[PROJECT_TECH_3]}\\[0.2cm]
+[PROJECT_DATES_3]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [PROJECT_DESCRIPTION_3_1]
+    \item [PROJECT_DESCRIPTION_3_2]
+    \item [PROJECT_DESCRIPTION_3_3]
+\end{itemize}
+
+\section{Additional Experience}
+\textbf{[ROLE_TITLE]} | \textit{[ORGANIZATION]}\\[0.2cm]
+[LOCATION] | [DATES]\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [DESCRIPTION_1]
+    \item [DESCRIPTION_2]
+    \item [DESCRIPTION_3]
+\end{itemize}
+
+\section{Achievements}
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+    \item [ACHIEVEMENT_1]
+    \item [ACHIEVEMENT_2]
+    \item [ACHIEVEMENT_3]
+\end{itemize}
+
+\end{multicols}
+
+\end{document}
