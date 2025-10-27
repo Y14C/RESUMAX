@@ -303,9 +303,8 @@ ai_logs/
 # BUNDLED DEPENDENCIES (committed once, then ignored)
 # =============================================================================
 
-# Essential packages - ignore changes after initial commit
-essentialpackage/Tesseract-OCR/
-essentialpackage/TinyTeX/
+# Essential packages - ignore entire folder
+essentialpackage/
 
 # =============================================================================
 # ENVIRONMENT & CONFIGURATION
