@@ -1,0 +1,109 @@
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (INITEX)  27 OCT 2025 13:51
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**xetex.ini
+(c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/tex-ini-files/xetex.ini
+(c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/unicode-data/load-unicode-data.tex 
+load-unicode-data.tex v1.18 (2025-01-07)
+Reading Unicode data
+# UnicodeData-16.0.0.txt
+# Modified 2024-08-25 18:05 GMT [JAW]
+) (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/unicode-data/load-unicode-xetex-classes.tex 
+load-unicode-xetex-classes.tex v1.18 (2025-01-07)
+Reading Unicode east Asian character class data
+# LineBreak-16.0.0.txt 
+# Date: 2024-07-29, 16:26:55 GMT 
+# EastAsianWidth-16.0.0.txt 
+# Date: 2024-04-30, 21:48:20 GMT 
+) (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/plain/etex/etex.src (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/plain/base/plain.tex Preloading the plain format: codes, registers,
+\maxdimen=\dimen10
+\hideskip=\skip10
+\centering=\skip11
+\p@=\dimen11
+\z@=\dimen12
+\z@skip=\skip12
+\voidb@x=\box10
+ parameters,
+\smallskipamount=\skip13
+\medskipamount=\skip14
+\bigskipamount=\skip15
+\normalbaselineskip=\skip16
+\normallineskip=\skip17
+\normallineskiplimit=\dimen13
+\jot=\dimen14
+\interdisplaylinepenalty=\count23
+\interfootnotelinepenalty=\count24
+ fonts, more fonts,
+\itfam=\fam4
+\slfam=\fam5
+\bffam=\fam6
+\ttfam=\fam7
+ macros,
+\strutbox=\box11
+\mscount=\count25
+\tabs=\box12
+\tabsyet=\box13
+\tabsdone=\box14
+ math definitions,
+\rootbox=\box15
+\p@renwd=\dimen15
+ output routines,
+\headline=\toks10
+\footline=\toks11
+\footins=\insert254
+\topins=\insert253
+ hyphenation (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyphen/hyphen.tex [skipping from \patterns to end-of-file...]))
+\et@xinput=\read0
+\et@xtoks=\toks12
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/plain/etex/etexdefs.lib Skipping module "grouptypes"; Loading module "interactionmodes"; Skipping module "nodetypes"; Skipping module "iftypes";) (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-var/tex/generic/config/language.def
+\lang@USenglish=\language0
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyphen/hyphen.tex)
+\lang@ukenglish=\language1
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/loadhyph/loadhyph-en-gb.tex ASCII Hyphenation patterns for British English (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/patterns/tex/hyph-en-gb.tex))
+\lang@british=\language2
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/loadhyph/loadhyph-en-gb.tex ASCII Hyphenation patterns for British English (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/patterns/tex/hyph-en-gb.tex))
+\lang@UKenglish=\language3
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/loadhyph/loadhyph-en-gb.tex ASCII Hyphenation patterns for British English (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/patterns/tex/hyph-en-gb.tex))
+\lang@usenglishmax=\language4
+ (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/loadhyph/loadhyph-en-us.tex ASCII Hyphenation patterns for American English (c:/Users/IMPERIUM OF MAN/Desktop/resumax/essentialpackage/TinyTeX/texmf-dist/tex/generic/hyph-utf8/patterns/tex/hyph-en-us.tex))) Augmenting the Plain TeX definitions: \tracingall; Adding new e-TeX definitions: \eTeX, \loggingall, \tracingnone, register allocation;
+\et@xins=\count26
+ extended register allocation; 
+Recycling: \addlanguage, \@nswer (not defined), \@sk, \b@dresponsetrue, \b@dresponsefalse, \ch@ckforyn, \mayber@cycle, \et@xabort, \et@xbuf, \et@xfmtsrc, \et@xfilehdr, \et@xinf, \et@xpatterns, \l@ngdefnfile, \n@xt, \p@rse (not defined), \pr@mpt (not defined), \pr@mptloop (not defined), \forcer@cycle, \usef@llback, \usef@llbacktrue, \usef@llbackfalse, 
+Retaining: \et@xerr, \et@xinput, \et@xlibhdr, \et@xmsg, \et@xtoks, \et@xwarn, \et@xl@@d, \et@xl@ad, \et@xload, \et@xlang, \et@xhash, \eTeX, \etexhdrchk, \etexstatus, \module, \uselanguage, \r@tain, \r@cycle,)
+\xe@alloc@intercharclass=\count27
+
+ )
+Beginning to dump on file xetex.fmt
+ (preloaded format=xetex 2025.10.27)
+70633 strings of total length 62814
+12393 memory locations dumped; current usage is 647&7603
+4021 multiletter control sequences
+\font\nullfont=nullfont
+\font\tenrm=cmr10
+\font\sevenrm=cmr7
+\font\fiverm=cmr5
+\font\teni=cmmi10
+\font\seveni=cmmi7
+\font\fivei=cmmi5
+\font\tensy=cmsy10
+\font\sevensy=cmsy7
+\font\fivesy=cmsy5
+\font\tenex=cmex10
+\font\tenbf=cmbx10
+\font\sevenbf=cmbx7
+\font\fivebf=cmbx5
+\font\tentt=cmtt10
+\font\tensl=cmsl10
+\font\tenit=cmti10
+4739 words of font info for 16 preloaded fonts
+52 hyphenation exceptions
+Hyphenation trie of length 20392 has 1230 ops out of 35111
+  377 for language 4
+  224 for language 3
+  224 for language 2
+  224 for language 1
+  181 for language 0
+No pages of output.
+# actual command line used during this run
+# xetex -ini   -jobname=xetex -progname=xetex -etex xetex.ini <nul

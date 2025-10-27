@@ -1,0 +1,13 @@
+[Sat Oct 25 21:29:30 2025] install: enumitem
+[Sat Oct 25 21:29:30 2025] command: mktexlsr
+[Sat Oct 25 23:02:18 2025] install: titlesec
+[Sat Oct 25 23:02:18 2025] command: mktexlsr
+[Mon Oct 27 13:50:32 2025] install: babel-english
+[Mon Oct 27 13:50:34 2025] install: hyphen-english
+[Mon Oct 27 13:50:34 2025] command: mktexlsr
+[Mon Oct 27 13:50:34 2025] command: fmtutil-sys --byhyphen "language.dat" --no-error-if-no-engine=luametatex,luajithbtex,luajittex,mfluajit --status-file=C:\Users\IMPERI~1\AppData\Local\Temp\BqcgwVMe4x\9ScKkjLpGc
+[Mon Oct 27 13:51:16 2025]   OK: pdflatex.fmt/pdftex latex.fmt/pdftex xelatex.fmt/xetex lualatex.fmt/luahbtex dvilualatex.fmt/luatex
+[Mon Oct 27 13:51:16 2025] command: fmtutil-sys --byhyphen "language.def" --no-error-if-no-engine=luametatex,luajithbtex,luajittex,mfluajit --status-file=C:\Users\IMPERI~1\AppData\Local\Temp\BqcgwVMe4x\9ScKkjLpGc
+[Mon Oct 27 13:51:22 2025]   OK: pdflatex.fmt/pdftex latex.fmt/pdftex xelatex.fmt/xetex lualatex.fmt/luahbtex dvilualatex.fmt/luatex luahbtex.fmt/luahbtex xetex.fmt/xetex pdftex.fmt/pdftex luatex.fmt/luatex dviluatex.fmt/luatex pdfetex.fmt/pdftex etex.fmt/pdftex
+[Mon Oct 27 13:51:22 2025] command: fmtutil-sys --byhyphen "language.dat.lua" --no-error-if-no-engine=luametatex,luajithbtex,luajittex,mfluajit --status-file=C:\Users\IMPERI~1\AppData\Local\Temp\BqcgwVMe4x\9ScKkjLpGc
+[Mon Oct 27 13:51:24 2025]   OK: pdflatex.fmt/pdftex latex.fmt/pdftex xelatex.fmt/xetex lualatex.fmt/luahbtex dvilualatex.fmt/luatex luahbtex.fmt/luahbtex xetex.fmt/xetex pdftex.fmt/pdftex luatex.fmt/luatex dviluatex.fmt/luatex pdfetex.fmt/pdftex etex.fmt/pdftex

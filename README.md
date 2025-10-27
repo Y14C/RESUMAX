@@ -72,7 +72,7 @@ Resumax is a modern desktop application that uses AI to automatically convert re
 
 For first-time setup, download our automated setup script:
 
-1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/your-username/resumax/releases/latest)
+1. **Download** `setup-resumax.bat` from the [latest release](https://github.com/Y14C/RESUMAX/releases/tag/v1.0.0)
 2. **Run** the script (double-click or run from command prompt)
 3. **Follow** the interactive prompts
 
