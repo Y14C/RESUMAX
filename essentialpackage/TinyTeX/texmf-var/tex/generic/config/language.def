@@ -28,6 +28,11 @@
 \addlanguage {USenglish}{hyphen}{}{2}{3} %%% This MUST be the first non-comment
                                          %%% line of the file
 
+% from hyphen-english:
+\addlanguage{ukenglish}{loadhyph-en-gb.tex}{}{2}{3}
+\addlanguage{british}{loadhyph-en-gb.tex}{}{2}{3}
+\addlanguage{UKenglish}{loadhyph-en-gb.tex}{}{2}{3}
+\addlanguage{usenglishmax}{loadhyph-en-us.tex}{}{2}{3}
 %%% No changes may be made beyond this point.
 
 \uselanguage {USenglish}             %%% This MUST be the last line of the file.
