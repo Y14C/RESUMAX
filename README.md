@@ -217,7 +217,7 @@ We extend our gratitude to the following open-source projects that make Resumax 
 
 <div align="center">
 
-**Ready to transform your resume?** [Get started now!](#-quick-start)
+**Ready to transform your resume?** [Get started now!](#quick-start)
 
 Made with ❤️ by the Resumax team
 
