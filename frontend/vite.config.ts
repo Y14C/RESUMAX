@@ -17,7 +17,7 @@ export default defineConfig({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Content-Security-Policy': "connect-src 'self' http://localhost:54782 blob: data:; img-src 'self' data: blob:; worker-src 'self' blob:; script-src 'self' 'unsafe-eval' blob:;"
+      'Content-Security-Policy': "connect-src 'self' http://localhost:54782 blob: data:; img-src 'self' data: blob:; worker-src 'self' blob:; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline';"
     },
   },
 });
