@@ -40,7 +40,7 @@
     "appId": "com.resumax.app",
     "productName": "Resumax",
     "directories": {
-      "output": "../packaging/release-new",
+      "output": "../packaging/release",
       "buildResources": "public"
     },
     "win": {

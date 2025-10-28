@@ -10,6 +10,9 @@ spec_dir = Path(SPECPATH)  # This is the packaging/ directory
 project_root = spec_dir.parent  # This is the resumax/ directory
 backend_dir = project_root / 'backend'
 
+# Set output directory to packaging/dist (relative to project root)
+dist_dir = spec_dir / 'dist'
+
 block_cipher = None
 
 a = Analysis(
@@ -140,4 +143,5 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='ResumaxBackend',
+    distpath=str(dist_dir),  # Explicitly set output directory
 )

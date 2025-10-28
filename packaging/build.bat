@@ -30,37 +30,43 @@ if errorlevel 1 (
 cd ..\packaging
 
 echo [2/4] Building Python backend...
+REM Ensure we're in the packaging directory for PyInstaller
+cd /d "%~dp0"
 pyinstaller resumax-backend.spec --clean --noconfirm
 if errorlevel 1 (
     echo ERROR: Backend build failed
     pause
     exit /b 1
 )
-echo    ✓ Backend built: packaging\dist\ResumaxBackend.exe
+echo    ✓ Backend built: packaging\dist\ResumaxBackend\
 
 echo [3/4] Building React frontend...
-cd ..\frontend
+REM Navigate to frontend directory relative to project root
+cd /d "%~dp0..\frontend"
 call npm run build
 if errorlevel 1 (
     echo ERROR: Frontend build failed
-    cd ..\packaging
+    cd /d "%~dp0"
     pause
     exit /b 1
 )
 echo    ✓ Frontend built: frontend\dist\
-cd ..\packaging
+REM Return to packaging directory
+cd /d "%~dp0"
 
 echo [4/4] Packaging Electron app...
-cd ..\frontend
+REM Navigate to frontend directory relative to project root
+cd /d "%~dp0..\frontend"
 call npm run build:electron
 if errorlevel 1 (
     echo ERROR: Electron packaging failed
-    cd ..\packaging
+    cd /d "%~dp0"
     pause
     exit /b 1
 )
 echo    ✓ Installer created: packaging\release\
-cd ..\packaging
+REM Return to packaging directory
+cd /d "%~dp0"
 
 echo.
 echo ========================================
@@ -72,6 +78,6 @@ echo.
 echo All build artifacts:
 echo - packaging\dist\ResumaxBackend\ (Backend folder)
 echo - frontend\dist\ (React build)
-echo - packaging\release-new\ (Installer)
+echo - packaging\release\ (Installer)
 echo.
 pause
