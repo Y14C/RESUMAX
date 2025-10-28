@@ -158,8 +158,6 @@ frontend/
 │   │   └── rippleEngine.ts    # Canvas animation engine
 │   ├── App.tsx                # Root React component
 │   └── main.tsx               # Application entry point
-├── dist/                      # Vite build output
-├── release/                   # Electron packaged applications
 ├── node_modules/              # Dependencies
 ├── package.json               # Project configuration and scripts
 ├── tsconfig.json              # TypeScript configuration
@@ -167,6 +165,16 @@ frontend/
 ├── vite.config.ts             # Vite build configuration
 ├── index.html                 # HTML entry point
 └── README.md                  # This documentation
+
+packaging/                      # Centralized build artifacts
+├── dist/
+│   └── ResumaxBackend.exe     # PyInstaller backend executable
+├── frontend-dist/             # React build output
+├── release/                   # Final installer artifacts
+│   ├── Resumax Setup.exe      # NSIS installer
+│   └── Resumax.exe            # Portable application
+├── build.bat                  # Full build orchestration script
+└── resumax-backend.spec       # PyInstaller configuration
 ```
 
 ## Core Modules
@@ -598,7 +606,7 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    outDir: 'dist',
+    outDir: '../packaging/frontend-dist',  // Centralized build output
     emptyOutDir: true,
   },
   server: {
@@ -666,7 +674,7 @@ Windows packaging and distribution settings.
     "appId": "com.resumax.app",
     "productName": "Resumax",
     "directories": {
-      "output": "release"
+      "output": "../packaging/release"  // Centralized release output
     },
     "win": {
       "target": [
@@ -688,23 +696,56 @@ Windows packaging and distribution settings.
       "createStartMenuShortcut": true
     },
     "files": [
-      "dist/**/*",
+      "../packaging/frontend-dist/**/*",  // Centralized frontend build
       "public/electron.cjs",
       "public/icon.ico",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "../backend",
-        "to": "backend",
-        "filter": [
-          "**/*",
-          "!**/__pycache__/**",
-          "!**/*.pyc"
-        ]
+        "from": "../packaging/dist/ResumaxBackend.exe",  // PyInstaller executable
+        "to": "ResumaxBackend.exe"
+      },
+      {
+        "from": "../essentialpackage",
+        "to": "essentialpackage"
       }
     ]
   }
+}
+```
+
+### Production vs Development Environment
+
+The frontend automatically detects and adapts to different environments:
+
+**Development Mode**:
+- Vite dev server on `http://localhost:5173`
+- Hot reload and fast refresh
+- Backend spawns Python process (`python main.py`)
+- Console logging and debugging
+
+**Production Mode**:
+- Static files served from `packaging/frontend-dist/`
+- Electron spawns `ResumaxBackend.exe` executable
+- File-based logging
+- Optimized bundle with minification
+
+**Environment Detection**:
+```typescript
+// In electron.cjs
+const isDev = process.env.NODE_ENV === 'development';
+
+if (isDev) {
+  // Development: spawn Python process
+  backendProcess = spawn('python', ['main.py'], {
+    cwd: path.join(__dirname, '../../backend')
+  });
+} else {
+  // Production: spawn PyInstaller executable
+  backendProcess = spawn('ResumaxBackend.exe', [], {
+    cwd: path.join(process.resourcesPath)
+  });
 }
 ```
 
@@ -763,21 +804,32 @@ npm run electron:dev
 
 ### Build Process
 
-1. **Production Build:**
+1. **Frontend Build:**
 ```bash
-# Build React application
+# Build React application to centralized location
 npm run build
-
-# Preview production build
-npm run preview
+# Output: packaging/frontend-dist/
 ```
 
-2. **Electron Packaging:**
+2. **Backend Build:**
+```bash
+# Build PyInstaller executable
+pyinstaller packaging/resumax-backend.spec
+# Output: packaging/dist/ResumaxBackend.exe
+```
+
+3. **Electron Package:**
 ```bash
 # Build and package Electron app
 npm run electron:build
+# Output: packaging/release/
+```
 
-# Output will be in 'release/' directory
+4. **Full Build:**
+```bash
+# Orchestrate complete build process
+packaging/build.bat
+# Creates: packaging/release/Resumax Setup.exe
 ```
 
 ### Available Scripts
@@ -1000,25 +1052,33 @@ npm run electron:build
 
 ### Backend Integration
 
-The frontend includes the Python backend as an extra resource:
+The frontend includes the PyInstaller backend executable as an extra resource:
 
 ```json
 {
   "extraResources": [
     {
-      "from": "../backend",
-      "to": "backend",
-      "filter": ["**/*", "!**/__pycache__/**", "!**/*.pyc"]
+      "from": "../packaging/dist/ResumaxBackend.exe",
+      "to": "ResumaxBackend.exe"
+    },
+    {
+      "from": "../essentialpackage",
+      "to": "essentialpackage"
     }
   ]
 }
 ```
 
 **Backend Requirements:**
-- Python 3.10+ installed on target machine
-- Required Python packages (see backend README)
-- LaTeX distribution (TinyTeX or MiKTeX)
-- Tesseract OCR (optional, for scanned PDFs)
+- **Production**: `ResumaxBackend.exe` (PyInstaller executable)
+- **Development**: Python 3.10+ with all dependencies installed
+- **Bundled Dependencies**: Essential package includes Tesseract OCR and TinyTeX
+- **Path Resolution**: Automatic detection of bundled vs system dependencies
+
+**Process Management:**
+- **Development**: Electron spawns `python main.py`
+- **Production**: Electron spawns `ResumaxBackend.exe`
+- **Cleanup**: Proper SIGTERM/SIGKILL handling with timeout
 
 ## Troubleshooting
 

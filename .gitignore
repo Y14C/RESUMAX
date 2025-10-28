@@ -307,6 +307,18 @@ ai_logs/
 essentialpackage/
 
 # =============================================================================
+# PACKAGING BUILD ARTIFACTS
+# =============================================================================
+
+# All build outputs in packaging folder
+packaging/build/
+packaging/dist/
+packaging/frontend-dist/
+packaging/release/
+packaging/*.spec.backup
+essentialpackage.zip
+
+# =============================================================================
 # ENVIRONMENT & CONFIGURATION
 # =============================================================================
 

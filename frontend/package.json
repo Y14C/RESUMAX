@@ -9,9 +9,13 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder --win"
+    "build:backend": "cd ../packaging && pyinstaller resumax-backend.spec --clean --noconfirm",
+    "build:electron": "npm run build && electron-builder --win",
+    "build:full": "npm run build:backend && npm run build:electron"
   },
   "dependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "adm-zip": "^0.5.16",
     "animejs": "^3.2.2",
     "pdfjs-dist": "^5.4.296",
     "react": "^18.3.1",
@@ -35,18 +39,13 @@
     "appId": "com.resumax.app",
     "productName": "Resumax",
     "directories": {
-      "output": "release"
+      "output": "../packaging/release",
+      "buildResources": "public"
     },
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
           "arch": [
             "x64"
           ]
@@ -58,24 +57,34 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "shortcutName": "Resumax"
     },
     "files": [
-      "dist/**/*",
+      "../packaging/frontend-dist/**/*",
       "public/electron.cjs",
+      "public/preload.js",
       "public/icon.ico",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "../Backend",
-        "to": "Backend",
-        "filter": [
-          "**/*",
-          "!**/__pycache__/**",
-          "!**/*.pyc"
-        ]
+        "from": "../packaging/dist/ResumaxBackend.exe",
+        "to": "backend/ResumaxBackend.exe"
+      },
+      {
+        "from": "../backend/Latex_formats",
+        "to": "backend/Latex_formats"
+      },
+      {
+        "from": "../essentialpackage",
+        "to": "essentialpackage"
       }
+    ],
+    "asarUnpack": [
+      "backend/**/*"
     ]
   }
 }

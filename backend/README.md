@@ -90,6 +90,7 @@ backend/
 ├── main.py                    # Flask server and API endpoints
 ├── REQUIREMENTS.md            # Python dependencies documentation
 ├── README.md                  # This documentation
+├── requirements.txt           # Python package dependencies
 ├── Model_API/                 # AI provider integrations
 │   ├── __init__.py
 │   ├── claude.py             # Anthropic Claude API handler
@@ -121,6 +122,16 @@ backend/
 ├── logs/                     # AI response logs (auto-generated)
 ├── temp/                     # Temporary files (auto-cleanup)
 └── __init__.py
+
+packaging/                     # Centralized build artifacts
+├── dist/
+│   └── ResumaxBackend.exe    # PyInstaller backend executable
+├── frontend-dist/            # React build output
+├── release/                  # Final installer artifacts
+│   ├── Resumax Setup.exe     # NSIS installer
+│   └── Resumax.exe           # Portable application
+├── build.bat                 # Full build orchestration script
+└── resumax-backend.spec      # PyInstaller configuration
 ```
 
 ## Core Modules
@@ -597,6 +608,21 @@ Each template includes:
 
 ## Usage Instructions
 
+### Packaged Application (End Users)
+
+For end users with the packaged installer:
+
+1. **Install**: Run `Resumax Setup.exe` installer
+2. **Launch**: Start Resumax from desktop shortcut or start menu
+3. **Configure**: Set up AI provider and API key in the application
+4. **Use**: Upload resume, select template, and generate PDF
+
+**No technical setup required** - the packaged app includes:
+- Complete Python backend (`ResumaxBackend.exe`)
+- All dependencies bundled
+- Essential package (Tesseract + TinyTeX)
+- Automatic path resolution
+
 ### Developer Launcher (Recommended)
 
 The easiest way to start integrated development! Simply run the launcher:
@@ -736,6 +762,82 @@ logger.info(f"[AI RESPONSE] Successfully received LaTeX code - Length: {len(late
 
 # Error logging
 logger.error(f"[AI ERROR] Processing failed for {provider}/{model}: {error_message}")
+```
+
+## Production Packaging
+
+### PyInstaller Standalone Executable
+
+The backend is packaged as a standalone Windows executable using PyInstaller:
+
+**Configuration File**: `packaging/resumax-backend.spec`
+- Bundles all Python dependencies into single executable
+- Includes hidden imports and data files
+- Creates `ResumaxBackend.exe` in `packaging/dist/`
+
+**Key Features:**
+- **No Python Installation Required**: End users don't need Python
+- **Bundled Dependencies**: All packages included in executable
+- **Path Resolution**: Automatic detection of production vs development environment
+- **File-based Logging**: Production logging writes to files instead of console
+- **Process Management**: Electron spawns executable with proper cleanup
+
+### Bundled Dependencies
+
+**Essential Package Structure:**
+```
+packaging/
+├── dist/
+│   └── ResumaxBackend.exe          # PyInstaller executable
+├── frontend-dist/                   # React build output
+└── release/                         # Final installer
+    ├── Resumax Setup.exe           # NSIS installer
+    └── Resumax.exe                 # Portable app
+```
+
+**Bundled Components:**
+- `essentialpackage/TinyTeX/` - LaTeX distribution
+- `essentialpackage/Tesseract-OCR/` - OCR support
+- `ResumaxBackend.exe` - Complete Python backend
+
+### Path Resolution
+
+The backend automatically detects production vs development environment:
+
+```python
+import sys
+
+# Production detection
+if getattr(sys, 'frozen', False):
+    # Running as PyInstaller executable
+    BASE_DIR = Path(sys._MEIPASS)
+    BUNDLED_MODE = True
+else:
+    # Development mode
+    BASE_DIR = Path(__file__).parent
+    BUNDLED_MODE = False
+```
+
+**Path Priority:**
+1. **Production**: Bundled paths in `sys._MEIPASS`
+2. **Development**: Project root paths
+3. **Fallback**: System installation paths
+
+### Production Logging
+
+In production mode, logging writes to files instead of console:
+
+```python
+if BUNDLED_MODE:
+    # File-based logging for production
+    logging.basicConfig(
+        filename='resumax.log',
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+else:
+    # Console logging for development
+    logging.basicConfig(level=logging.INFO)
 ```
 
 ## Deployment

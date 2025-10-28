@@ -68,9 +68,28 @@ Resumax is a modern desktop application that uses AI to automatically convert re
 
 ## Quick Start
 
-### Windows Users: Automated Setup
+### End Users: Production Installation
 
-For first-time setup, download our automated setup script:
+For end users, download and install the standalone Resumax installer:
+
+1. **Download** `Resumax Setup.exe` from the [latest release](https://github.com/Y14C/RESUMAX/releases/latest)
+2. **Run** the installer and follow the setup wizard
+3. **Launch** Resumax from desktop shortcut or start menu
+
+The installer includes:
+- ✅ Complete Resumax application (no Python/Node.js installation required)
+- ✅ Bundled backend executable (ResumaxBackend.exe)
+- ✅ Essential dependencies (Tesseract OCR + TinyTeX)
+- ✅ Desktop and start menu shortcuts
+- ✅ Automatic uninstaller
+
+> **No technical setup required** - just download, install, and run!
+
+### Developers: Development Setup
+
+For developers working on the codebase:
+
+#### Automated Setup (Recommended)
 
 1. **Download** `setup-resumax.bat` from the [setup](https://github.com/Y14C/RESUMAX/releases/tag/v1.0.0)
 2. **Run** the script (double-click or run from command prompt)
@@ -83,9 +102,7 @@ The script will automatically:
 - ✅ Verify Tesseract-OCR and TinyTeX availability
 - ✅ Set up your complete development environment
 
-> No manual downloads needed - the script handles everything!
-
-### Developer Launcher (Recommended)
+#### Developer Launcher
 
 The easiest way to start development! Simply run the launcher:
 
@@ -132,6 +149,45 @@ cd frontend && npm run electron:dev
 - **Document Processing**: PyMuPDF, python-docx, Tesseract OCR
 - **PDF Generation**: LaTeX (TinyTeX/MiKTeX)
 - **Build Tools**: Vite, Electron Builder
+- **Packaging**: PyInstaller (backend), Electron Builder (frontend)
+
+## Production Packaging
+
+Resumax is packaged as a standalone Windows installer with all dependencies bundled:
+
+### Centralized Build Structure
+
+All packaging artifacts are consolidated in the `packaging/` folder:
+
+```
+packaging/
+├── dist/
+│   └── ResumaxBackend.exe          # PyInstaller backend executable
+├── frontend-dist/                   # React build output
+├── release/                         # Final installer artifacts
+│   ├── Resumax Setup.exe           # NSIS installer
+│   └── Resumax.exe                 # Portable application
+├── build.bat                        # Full build orchestration script
+└── resumax-backend.spec            # PyInstaller configuration
+```
+
+### Production Features
+
+- **Standalone Backend**: PyInstaller creates `ResumaxBackend.exe` with all Python dependencies bundled
+- **No Python Required**: End users don't need Python installation
+- **Bundled Dependencies**: Essential package includes Tesseract OCR and TinyTeX
+- **File-based Logging**: Production logging writes to files instead of console
+- **Path Resolution**: Automatic detection of bundled vs system dependencies
+- **Process Management**: Electron spawns backend executable with proper cleanup
+
+### Build Process
+
+1. **Backend Build**: PyInstaller creates standalone executable
+2. **Frontend Build**: Vite builds React application
+3. **Electron Package**: Electron Builder creates Windows installer
+4. **Dependency Bundling**: Essential package and backend executable included
+
+For detailed build instructions, see the [Development Guide](DEVELOPMENT.md).
 
 ## Documentation
 
@@ -142,13 +198,15 @@ cd frontend && npm run electron:dev
 | [⚙️ Backend Docs](backend/README.md) | API endpoints, AI providers, and backend architecture |
 | [📋 Requirements](frontend/REQUIREMENTS.md) | Frontend dependencies and system requirements |
 | [🐍 Python Dependencies](backend/REQUIREMENTS.md) | Backend dependencies and system requirements |
+| [📦 Production Packaging](#production-packaging) | Standalone installer with bundled dependencies |
 
 ## Architecture
 
 ```
 ┌─────────────────┐    HTTP API    ┌─────────────────┐
 │   Electron      │ ──────────────► │   Flask Server  │
-│   (React UI)    │                 │   (Python API)  │
+│   (React UI)    │                 │ (PyInstaller    │
+│                 │                 │  Executable)    │
 └─────────────────┘                 └─────────────────┘
          │                                   │
          │                                   ▼
@@ -161,7 +219,8 @@ cd frontend && npm run electron:dev
          │                                   ▼
          │                          ┌─────────────────┐
          │                          │  LaTeX Engine   │
-         │                          │ (TinyTeX/MiKTeX)│
+         │                          │ (Bundled TinyTeX│
+         │                          │  + Tesseract)   │
          └──────────────────────────┴─────────────────┘
 ```
 

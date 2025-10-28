@@ -12,9 +12,12 @@ import os
 import sys
 import uuid
 import logging
+import logging.handlers
 import threading
 import time
 import base64
+import signal
+import atexit
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 import io
@@ -140,24 +143,99 @@ class ColoredFormatter(logging.Formatter):
         
         return super().format(record)
 
-# Apply colored formatter to console handler
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(ColoredFormatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
-))
+# Configure logging based on environment
+def setup_logging():
+    """Setup logging configuration for development vs production"""
+    global logger
+    
+    # Get root logger and clear existing handlers
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    
+    if getattr(sys, 'frozen', False):
+        # Production mode: Log to file
+        # Create logs directory in installation root
+        exe_dir = Path(sys.executable).parent
+        install_root = exe_dir.parent.parent
+        logs_dir = install_root / "logs"
+        logs_dir.mkdir(exist_ok=True)
+        
+        log_file = logs_dir / "resumax-backend.log"
+        
+        # File handler with rotation
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_file, 
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        
+        root_logger.addHandler(file_handler)
+        root_logger.setLevel(logging.INFO)
+        
+        logger.info("Production logging initialized - writing to file")
+        
+    else:
+        # Development mode: Colored console output
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(ColoredFormatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%H:%M:%S'
+        ))
+        
+        root_logger.addHandler(console_handler)
+        root_logger.setLevel(logging.INFO)
+        
+        logger.info("Development logging initialized - colored console output")
 
-# Get root logger and add our handler
-root_logger = logging.getLogger()
-root_logger.handlers.clear()
-root_logger.addHandler(console_handler)
-root_logger.setLevel(logging.INFO)
+# Initialize logging
+setup_logging()
 
 # Global in-memory file storage with timestamps
 file_storage: Dict[str, Dict[str, Any]] = {}
 
 # Session timeout in seconds (1 hour)
 SESSION_TIMEOUT = 3600
+
+# Global flag for graceful shutdown
+shutdown_requested = False
+
+def signal_handler(signum, frame):
+    """Handle termination signals gracefully"""
+    global shutdown_requested
+    logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+    shutdown_requested = True
+    
+    # Give Flask time to finish current requests
+    time.sleep(1)
+    
+    # Force exit if still running
+    logger.info("Forcing exit...")
+    sys.exit(0)
+
+def cleanup_on_exit():
+    """Cleanup function called on exit"""
+    logger.info("Cleaning up on exit...")
+    # Clean up any temporary files
+    temp_dir = backend_dir / 'temp'
+    if temp_dir.exists():
+        for file in temp_dir.glob('*'):
+            try:
+                file.unlink()
+            except:
+                pass
+
+# Register signal handlers
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+if hasattr(signal, 'SIGBREAK'):  # Windows
+    signal.signal(signal.SIGBREAK, signal_handler)
+
+# Register cleanup function
+atexit.register(cleanup_on_exit)
 
 # Template metadata mapping
 TEMPLATE_METADATA = {
@@ -970,9 +1048,17 @@ if __name__ == '__main__':
     logger.info(f"Backend directory: {backend_dir}")
     logger.info("Server will run on http://localhost:54782")
     
-    app.run(
-        host='localhost',
-        port=54782,
-        debug=False,  # Set to False for production
-        threaded=True
-    )
+    try:
+        app.run(
+            host='localhost',
+            port=54782,
+            debug=False,  # Set to False for production
+            threaded=True,
+            use_reloader=False  # Disable reloader to prevent multiple processes
+        )
+    except KeyboardInterrupt:
+        logger.info("Received keyboard interrupt, shutting down...")
+    except Exception as e:
+        logger.error(f"Server error: {e}")
+    finally:
+        logger.info("Server shutdown complete")

@@ -39,6 +39,7 @@ Pillow>=10.4.0             # Image processing for OCR
 ### Utilities
 ```
 requests>=2.31.0           # HTTP requests
+pyinstaller>=6.0.0         # Standalone executable packaging
 ```
 
 ---
@@ -48,7 +49,7 @@ requests>=2.31.0           # HTTP requests
 Install all Python packages using pip:
 
 ```bash
-pip install Flask>=2.3.3 Flask-Cors>=4.0.0 python-dotenv>=1.0.0 anthropic>=0.71.0 google-generativeai>=0.8.2 openai>=2.6.1 python-docx>=1.1.0 pypandoc>=1.15 PyMuPDF>=1.26.5 pytesseract>=0.3.13 Pillow>=10.4.0 requests>=2.31.0
+pip install Flask>=2.3.3 Flask-Cors>=4.0.0 python-dotenv>=1.0.0 anthropic>=0.71.0 google-generativeai>=0.8.2 openai>=2.6.1 python-docx>=1.1.0 pypandoc>=1.15 PyMuPDF>=1.26.5 pytesseract>=0.3.13 Pillow>=10.4.0 requests>=2.31.0 pyinstaller>=6.0.0
 ```
 
 Or create a `requirements.txt` file with the above packages (one per line) and run:
@@ -155,6 +156,53 @@ pdflatex --version
 
 ---
 
+## Bundled Dependencies (Production)
+
+### Essential Package Structure
+
+For production distribution, the following dependencies are bundled:
+
+```
+essentialpackage/
+├── TinyTeX/                  # LaTeX distribution
+│   └── bin/windows/
+│       └── pdflatex.exe      # LaTeX compiler
+└── Tesseract-OCR/            # OCR engine
+    ├── tesseract.exe         # OCR executable
+    ├── tessdata/             # Language data files
+    └── *.dll                 # Required libraries
+```
+
+### PyInstaller Integration
+
+**Configuration**: `packaging/resumax-backend.spec`
+- Bundles all Python dependencies
+- Includes essential package files
+- Creates standalone `ResumaxBackend.exe`
+- Handles path resolution for bundled dependencies
+
+**Production Detection**:
+```python
+import sys
+
+# Detect if running as PyInstaller executable
+if getattr(sys, 'frozen', False):
+    # Production mode - use bundled paths
+    BASE_DIR = Path(sys._MEIPASS)
+    BUNDLED_MODE = True
+else:
+    # Development mode - use project paths
+    BASE_DIR = Path(__file__).parent
+    BUNDLED_MODE = False
+```
+
+**Path Resolution Priority**:
+1. **Production**: Bundled paths in `sys._MEIPASS`
+2. **Development**: Project root `essentialpackage/` folder
+3. **System**: System-installed dependencies
+
+---
+
 ## Optional Dependencies
 
 ### LM Studio (For Local AI Models)
@@ -208,10 +256,26 @@ pdflatex --version
 
 ### For Packaged Electron App:
 
-1. **Bundle TinyTeX**: Include `essentialpackage/TinyTeX/` folder in app distribution
-2. **Bundle Tesseract**: Include `essentialpackage/Tesseract-OCR/` folder for OCR support
-3. **Python Environment**: Use PyInstaller to bundle Python + packages into executable
+1. **PyInstaller Build**: Create standalone `ResumaxBackend.exe` with all Python dependencies
+2. **Bundle Essential Package**: Include `essentialpackage/TinyTeX/` and `essentialpackage/Tesseract-OCR/` folders
+3. **Path Resolution**: Backend automatically detects bundled vs system dependencies using `sys.frozen`
 4. **Environment Variables**: Store API keys securely (not in version control)
+5. **File-based Logging**: Production logging writes to files instead of console
+
+**Build Process**:
+```bash
+# Build PyInstaller executable
+pyinstaller packaging/resumax-backend.spec
+
+# Output: packaging/dist/ResumaxBackend.exe
+```
+
+**Production Features**:
+- No Python installation required for end users
+- All dependencies bundled in single executable
+- Automatic path resolution for bundled dependencies
+- File-based logging for production environments
+- Process management via Electron spawn
 
 ### For Server Deployment:
 
@@ -228,7 +292,7 @@ pdflatex --version
 **Quick Start**:
 
 ```bash
-# 1. Install Python packages
+# 1. Install Python packages (includes PyInstaller)
 pip install -r requirements.txt
 
 # 2. Install system dependencies (Windows)
@@ -243,9 +307,13 @@ winget install --id=JohnMacFarlane.Pandoc -e
 # RESUMAX_MODEL=gpt-4.1-2025-04-14
 # RESUMAX_API_KEY=sk-...
 
-# 5. Start backend
+# 5. Start backend (development mode)
 cd backend
 python main.py
+
+# 6. Build PyInstaller executable (production)
+pyinstaller packaging/resumax-backend.spec
+# Output: packaging/dist/ResumaxBackend.exe
 ```
 
 Server will start on: `http://localhost:54782`

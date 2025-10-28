@@ -33,13 +33,20 @@ import subprocess
 import tempfile
 import shutil
 import os
+import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
 
 def _get_project_root() -> Path:
     """Get the project root directory (2 levels up from this file)"""
-    return Path(__file__).parent.parent.parent
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        exe_dir = Path(sys.executable).parent
+        return exe_dir.parent.parent  # Go up to installation root
+    else:
+        # Running as script (development)
+        return Path(__file__).parent.parent.parent
 
 
 def _get_tinytex_path() -> Optional[Path]:

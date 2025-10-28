@@ -50,6 +50,71 @@
 - **concurrently**: ^9.1.0 - Run multiple commands simultaneously
 - **wait-on**: ^8.0.1 - Wait for resources to be available
 
+## Build Scripts and Packaging
+
+### Electron Builder Configuration
+
+The application uses electron-builder for Windows packaging with centralized build outputs:
+
+```json
+{
+  "build": {
+    "directories": {
+      "output": "../packaging/release"
+    },
+    "files": [
+      "../packaging/frontend-dist/**/*",
+      "public/electron.cjs",
+      "public/icon.ico",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../packaging/dist/ResumaxBackend.exe",
+        "to": "ResumaxBackend.exe"
+      },
+      {
+        "from": "../essentialpackage",
+        "to": "essentialpackage"
+      }
+    ]
+  }
+}
+```
+
+### Available Build Scripts
+
+```json
+{
+  "dev": "vite",
+  "build": "tsc && vite build",
+  "preview": "vite preview",
+  "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+  "electron:build": "npm run build && electron-builder --win"
+}
+```
+
+### Build Artifacts
+
+**Centralized Build Structure:**
+```
+packaging/
+├── dist/
+│   └── ResumaxBackend.exe     # PyInstaller backend executable
+├── frontend-dist/             # React build output
+├── release/                   # Final installer artifacts
+│   ├── Resumax Setup.exe      # NSIS installer
+│   └── Resumax.exe            # Portable application
+├── build.bat                  # Full build orchestration script
+└── resumax-backend.spec       # PyInstaller configuration
+```
+
+**Build Process:**
+1. **Frontend Build**: `npm run build` → `packaging/frontend-dist/`
+2. **Backend Build**: `pyinstaller packaging/resumax-backend.spec` → `packaging/dist/ResumaxBackend.exe`
+3. **Electron Package**: `npm run electron:build` → `packaging/release/`
+4. **Full Build**: `packaging/build.bat` → Complete installer
+
 ## Windows Compatibility Notes
 
 ### Electron Builder Configuration
@@ -64,10 +129,11 @@
 - Support both relative and absolute paths
 
 ### Build Artifacts
-- **NSIS Installer**: `Resumax Setup.exe`
-- **Portable App**: `Resumax.exe`
+- **NSIS Installer**: `packaging/release/Resumax Setup.exe`
+- **Portable App**: `packaging/release/Resumax.exe`
 - **Desktop Shortcut**: Created automatically
 - **Start Menu Entry**: Created automatically
+- **Centralized Output**: All build artifacts in `packaging/` folder
 
 ## Setup Instructions
 
@@ -135,13 +201,21 @@ npm run electron:build
 frontend/
 ├── src/                    # Source code
 ├── public/                 # Static assets
-├── dist/                   # Build output
-├── release/                # Electron packages
 ├── node_modules/           # Dependencies
 ├── package.json            # Project configuration
 ├── tsconfig.json           # TypeScript configuration
 ├── vite.config.ts          # Vite configuration
 └── REQUIREMENTS.md         # This file
+
+packaging/                  # Centralized build artifacts
+├── dist/
+│   └── ResumaxBackend.exe  # PyInstaller backend executable
+├── frontend-dist/          # React build output
+├── release/                # Final installer artifacts
+│   ├── Resumax Setup.exe   # NSIS installer
+│   └── Resumax.exe         # Portable application
+├── build.bat               # Full build orchestration script
+└── resumax-backend.spec    # PyInstaller configuration
 ```
 
 ## Version Compatibility

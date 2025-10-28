@@ -138,9 +138,15 @@ def _locate_tesseract() -> Optional[str]:
     if _tesseract_path_cache is not None:
         return _tesseract_path_cache
     
-    # Get project root directory (2 levels up from this file: backend/Upload/ -> backend/ -> root/)
-    current_file = Path(__file__)
-    project_root = current_file.parent.parent.parent
+    # Get project root directory - handle both dev and production environments
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        exe_dir = Path(sys.executable).parent
+        project_root = exe_dir.parent.parent  # Go up to installation root
+    else:
+        # Running as script (development)
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent.parent
     
     # Priority 1: Local Tesseract-OCR in project directory (for shipping)
     local_tesseract = project_root / "essentialpackage" / "Tesseract-OCR" / "tesseract.exe"
