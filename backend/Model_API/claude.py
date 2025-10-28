@@ -20,7 +20,7 @@ ERROR HANDLING:
 
 import anthropic
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
@@ -150,6 +150,73 @@ Here is the resume content to format:
 Please format the above resume content using the provided LaTeX template. Return only the complete LaTeX code, ready to compile."""
     
     return user_message
+
+
+def test_api_key(api_key: str, model_name: str) -> Tuple[bool, str]:
+    """
+    Test API key validity by making a minimal API call.
+    
+    CALLED BY: main.py during API key validation
+    
+    PARAMETERS:
+        - api_key: Anthropic API key to test
+        - model_name: Model to test with (must be from AVAILABLE_MODELS)
+    
+    RETURNS:
+        - Tuple[bool, str]: (success, message)
+        - success: True if API key is valid and working
+        - message: Success message or error description
+    
+    RAISES:
+        - ValueError: If model name is invalid
+    """
+    logger.info(f"[API TEST] Testing Claude API key with model: {model_name}")
+    
+    # Validate model name
+    if model_name not in AVAILABLE_MODELS:
+        raise ValueError(f"Invalid model name: {model_name}. Must be one of {AVAILABLE_MODELS}")
+    
+    try:
+        # Initialize Anthropic client
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        # Make minimal test API call
+        logger.info(f"[API TEST] Making test Claude API call to {model_name}")
+        response = client.messages.create(
+            model=model_name,
+            max_tokens=10,  # Minimal token usage
+            temperature=0.1,
+            messages=[
+                {
+                    "role": "user",
+                    "content": "hi"
+                }
+            ]
+        )
+        
+        # Check if we got a valid response
+        if response.content and len(response.content) > 0:
+            logger.info(f"[API TEST] Claude API key test successful for {model_name}")
+            return True, f"API key is valid and working with {model_name}"
+        else:
+            logger.error(f"[API TEST] Claude API returned empty response for {model_name}")
+            return False, "API returned empty response"
+            
+    except anthropic.AuthenticationError as e:
+        logger.error(f"[API TEST] Claude Authentication Error for {model_name}: {str(e)}")
+        return False, f"Invalid API key: {str(e)}"
+    
+    except anthropic.RateLimitError as e:
+        logger.error(f"[API TEST] Claude Rate Limit Error for {model_name}: {str(e)}")
+        return False, f"Rate limit exceeded: {str(e)}"
+    
+    except anthropic.APIError as e:
+        logger.error(f"[API TEST] Claude API Error for {model_name}: {str(e)}")
+        return False, f"API error: {str(e)}"
+    
+    except Exception as e:
+        logger.error(f"[API TEST] Unexpected error in Claude API test for {model_name}: {str(e)}")
+        return False, f"Unexpected error: {str(e)}"
 
 
 def _extract_latex_from_response(response) -> str:

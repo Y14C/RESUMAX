@@ -45,6 +45,62 @@ Resumax is a modern desktop application that uses AI to automatically convert re
 - **Session Management**: Secure file handling with automatic cleanup
 - **Error Handling**: Comprehensive error recovery and user feedback
 
+### Section Selector — One resume, tailored for every job
+
+Build a single master resume and create the right version for each application in seconds.
+
+- **Choose what to show**: Turn entire sections or individual entries on/off (work experience, projects, education, skills).
+- **Target any role**: Quickly tailor for different positions (e.g., Data Scientist vs. Frontend Engineer) without rewriting.
+- **Stay organized**: Keep everything in one place—no more duplicate files or messy copies.
+- **Export instantly**: Generate a clean, job‑ready PDF with only the most relevant highlights.
+
+How it helps you:
+1. Upload your resume once.
+2. Select what’s relevant for this job, hide the rest.
+3. Download a focused, ATS‑friendly PDF and apply.
+
+---
+
+## Smart Resume Customization
+
+**Your complete work history (just an example):**
+
+- Site Engineer — UrbanWorks Construction
+- Project Engineer — BuildSense (Digital Twins & Analytics)
+- Machine Learning Engineer — VisionEdge AI
+- Frontend Engineer — PixelCraft Labs
+
+---
+
+### For a Civil Engineering application
+
+**Select relevant experiences:**
+- ✅ Site Engineer — UrbanWorks Construction
+- ✅ Project Engineer — BuildSense (Digital Twins & Analytics)
+- ⬜ Machine Learning Engineer — VisionEdge AI
+- ⬜ Frontend Engineer — PixelCraft Labs
+
+**Your resume shows:**
+1. Project Engineer — BuildSense (Digital Twins & Analytics)
+2. Site Engineer — UrbanWorks Construction
+
+---
+
+### For an AI/ML application
+
+**Select relevant experiences:**
+- ⬜ Site Engineer — UrbanWorks Construction
+- ✅ Project Engineer — BuildSense (Digital Twins & Analytics)
+- ✅ Machine Learning Engineer — VisionEdge AI
+- ✅ Frontend Engineer — PixelCraft Labs
+
+**Your resume shows:**
+1. Machine Learning Engineer — VisionEdge AI
+2. Project Engineer — BuildSense (Digital Twins & Analytics)
+3. Frontend Engineer — PixelCraft Labs
+
+---
+
 ## Quick Preview
 
 ```
@@ -66,6 +122,50 @@ Resumax is a modern desktop application that uses AI to automatically convert re
                                         └─────────────────┘
 ```
 
+## Recent Updates
+
+### API Key Validation Feature ✅
+
+**New**: Real-time API key validation before saving configuration.
+
+**Features**:
+- **Real API Testing**: Makes actual API calls with "hi" message to verify keys work
+- **Cost Optimization**: Uses minimal token settings (max_tokens: 10) to reduce costs
+- **Provider Support**: Works with all four providers (OpenAI, Claude, Gemini, LM Studio)
+- **User Experience**: Clear visual feedback, loading states, and error messages
+- **Error Handling**: Comprehensive error handling for all failure scenarios
+- **LM Studio Support**: Special handling for local LM Studio connectivity testing
+
+**Implementation**:
+- Backend: Added `test_api_key()` functions to all provider modules
+- Backend: Added `/api/test-api-key` POST endpoint
+- Frontend: Added `testApiKey()` utility function
+- Frontend: Updated UI to validate API keys before saving configuration
+
+**User Flow**:
+1. User enters API key and clicks "Save Key"
+2. System tests API key with real API call
+3. Shows validation feedback (success/error message)
+4. Only saves configuration if API key is valid
+5. Blocks saving if validation fails with clear error message
+
+### Production Fix: AI Response Detection Issue ✅
+
+**Fixed**: Users getting stuck on AI loading page in production builds.
+
+**Root Cause**: Response format mismatch between backend and frontend causing double-wrapping of API responses.
+
+**Solution**: Updated backend endpoints to return data directly without `success` field, allowing frontend's `apiRequest` wrapper to handle success/error wrapping properly.
+
+**Affected Endpoints:**
+- `/api/process` - Resume processing
+- `/api/compile-latex` - PDF compilation
+- `/api/preprocess-latex` - LaTeX preprocessing
+- `/api/parse-sections` - Section parsing
+- `/api/filter-latex` - LaTeX filtering
+
+This fix ensures AI responses are properly detected and users can proceed from the processing page to the section selector.
+
 ## Quick Start
 
 ### End Users: Production Installation
@@ -78,7 +178,7 @@ For end users, download and install the standalone Resumax installer:
 
 The installer includes:
 - ✅ Complete Resumax application (no Python/Node.js installation required)
-- ✅ Bundled backend executable (ResumaxBackend.exe)
+- ✅ Bundled backend folder (ResumaxBackend/)
 - ✅ Essential dependencies (Tesseract OCR + TinyTeX)
 - ✅ Desktop and start menu shortcuts
 - ✅ Automatic uninstaller
@@ -162,30 +262,37 @@ All packaging artifacts are consolidated in the `packaging/` folder:
 ```
 packaging/
 ├── dist/
-│   └── ResumaxBackend.exe          # PyInstaller backend executable
-├── frontend-dist/                   # React build output
-├── release/                         # Final installer artifacts
-│   ├── Resumax Setup.exe           # NSIS installer
-│   └── Resumax.exe                 # Portable application
+│   └── ResumaxBackend/              # PyInstaller backend folder (onedir mode)
+│       ├── ResumaxBackend.exe
+│       └── _internal/               # Dependencies
+├── release-new/                     # Final installer artifacts
+│   ├── Resumax Setup 1.0.0.exe     # Windows installer (only file needed for distribution)
+│   ├── *.yml, *.yaml, *.blockmap   # Build artifacts (not needed for distribution)
+│   └── win-unpacked/                # Unpacked for testing
 ├── build.bat                        # Full build orchestration script
 └── resumax-backend.spec            # PyInstaller configuration
+
+frontend/
+└── dist/                            # React build output (not in packaging/)
 ```
 
 ### Production Features
 
-- **Standalone Backend**: PyInstaller creates `ResumaxBackend.exe` with all Python dependencies bundled
+- **Standalone Backend**: PyInstaller creates `ResumaxBackend/` folder with executable and dependencies (onedir mode)
 - **No Python Required**: End users don't need Python installation
 - **Bundled Dependencies**: Essential package includes Tesseract OCR and TinyTeX
 - **File-based Logging**: Production logging writes to files instead of console
-- **Path Resolution**: Automatic detection of bundled vs system dependencies
+- **Working Directory Paths**: Backend uses `os.getcwd()` for reliable path resolution
 - **Process Management**: Electron spawns backend executable with proper cleanup
+- **HashRouter**: Frontend uses HashRouter for Electron file:// protocol compatibility
 
 ### Build Process
 
-1. **Backend Build**: PyInstaller creates standalone executable
-2. **Frontend Build**: Vite builds React application
+1. **Backend Build**: PyInstaller creates `ResumaxBackend/` folder (onedir mode)
+2. **Frontend Build**: Vite builds React application to `frontend/dist/`
 3. **Electron Package**: Electron Builder creates Windows installer
-4. **Dependency Bundling**: Essential package and backend executable included
+4. **Dependency Bundling**: Essential package and backend folder included
+5. **App.asar Unpacking**: Frontend files unpacked to `app.asar.unpacked/dist/`
 
 For detailed build instructions, see the [Development Guide](DEVELOPMENT.md).
 

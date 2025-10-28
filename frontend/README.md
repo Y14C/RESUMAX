@@ -25,7 +25,7 @@ The Resumax Frontend is an Electron desktop application that provides a modern, 
 - **Desktop Framework**: Electron 38.4.0+ with Node.js integration
 - **UI Framework**: React 18.3.1+ with TypeScript 5.6.3+
 - **Build Tool**: Vite 7.1.12+ for fast development and optimized builds
-- **Routing**: React Router DOM 6.30.1+ for client-side navigation
+- **Routing**: React Router DOM 6.30.1+ (HashRouter for Electron file:// protocol compatibility)
 - **PDF Rendering**: PDF.js 5.4.296+ with React PDF wrapper
 - **Animation**: Anime.js 3.2.2+ for smooth UI transitions
 - **Platform**: Windows 10/11 (x64) with NSIS installer
@@ -168,13 +168,18 @@ frontend/
 
 packaging/                      # Centralized build artifacts
 ├── dist/
-│   └── ResumaxBackend.exe     # PyInstaller backend executable
-├── frontend-dist/             # React build output
-├── release/                   # Final installer artifacts
-│   ├── Resumax Setup.exe      # NSIS installer
-│   └── Resumax.exe            # Portable application
+│   └── ResumaxBackend/        # PyInstaller backend folder (onedir mode)
+│       ├── ResumaxBackend.exe
+│       └── _internal/         # Dependencies
+├── release-new/               # Final installer artifacts
+│   ├── Resumax Setup 1.0.0.exe # Windows installer (only file needed)
+│   ├── *.yml, *.yaml, *.blockmap # Build artifacts (not needed for distribution)
+│   └── win-unpacked/          # Unpacked for testing
 ├── build.bat                  # Full build orchestration script
 └── resumax-backend.spec       # PyInstaller configuration
+
+frontend/
+└── dist/                      # React build output (not in packaging/)
 ```
 
 ## Core Modules
@@ -188,12 +193,13 @@ The root React component that sets up routing, error boundaries, and global layo
 - Error boundary for graceful error handling
 - App loader for initial data preloading
 - Global layout with animated background and custom cursor
+- HashRouter for Electron file:// protocol compatibility
 
 **Core Structure:**
 ```typescript
 <ErrorBoundary>
   <AppLoader>
-    <Router>
+    <Router> {/* HashRouter for Electron file:// protocol */}
       <RippleBackground />
       <Routes>
         <Route path="/" element={<ResumaxUI />} />
@@ -208,6 +214,12 @@ The root React component that sets up routing, error boundaries, and global layo
 </ErrorBoundary>
 ```
 
+**Routing Implementation:**
+- Uses `HashRouter` instead of `BrowserRouter` for Electron compatibility
+- `BrowserRouter` requires a web server and fails with `file://` protocol
+- `HashRouter` uses URL hashes (`#/templates`) which work with local files
+- All routes accessible via hash-based navigation
+
 ### Pages Package
 
 #### ResumaxUI.tsx - Main Landing Page
@@ -216,7 +228,7 @@ The primary application interface with configuration and file upload capabilitie
 
 **Key Features:**
 - AI provider and model selection with tabbed interface
-- API key configuration with secure storage
+- **API Key Validation**: Real-time testing before saving configuration
 - File upload with drag-and-drop support
 - Configuration validation and error handling
 - Animated UI transitions and feedback
@@ -224,14 +236,16 @@ The primary application interface with configuration and file upload capabilitie
 **State Management:**
 - Provider/model selection state
 - API key management with backend persistence
+- **API Testing State**: Loading states and validation feedback
 - File upload session tracking
 - Configuration panel visibility control
 
 **Configuration Flow:**
 1. Provider Selection → Model Selection → API Key Input
-2. Auto-advance between tabs on selection
-3. Configuration validation before processing
-4. Persistent storage via backend API
+2. **API Key Validation**: Tests key with real API call before saving
+3. Auto-advance between tabs on selection
+4. Configuration validation before processing
+5. Persistent storage via backend API
 
 #### TemplateSelection.tsx - Template Picker
 
@@ -419,10 +433,11 @@ checkServerHealth(): Promise<boolean>
 
 #### configStorage.ts - Configuration Management
 
-Configuration persistence via backend API integration.
+Configuration persistence via backend API integration with API key validation.
 
 **Key Features:**
 - Backend API integration for configuration storage
+- **API Key Validation**: Real-time testing of API keys before saving
 - Type-safe configuration interface
 - Error handling and validation
 - Automatic configuration loading on startup
@@ -442,6 +457,15 @@ interface ConfigResponse {
   isComplete?: boolean;
   message?: string;
   error?: ApiError;
+}
+```
+
+**API Key Validation:**
+```typescript
+export async function testApiKey(config: UserConfig): Promise<ConfigResponse> {
+  // Tests API key validity by making real API call
+  // Returns standardized success/error response
+  // Handles all provider-specific errors
 }
 ```
 
@@ -491,6 +515,62 @@ const REQUEST_TIMEOUT = 30000; // 30 seconds
 4. **File Upload**: Upload resume files with progress tracking
 5. **Processing**: Submit AI processing requests
 6. **LaTeX Operations**: Compile, preprocess, and filter LaTeX code
+
+### API Response Handling
+
+The frontend uses two different patterns for handling API responses:
+
+#### `apiRequest` Wrapper (Most Endpoints)
+Used for most API calls with automatic error handling and response wrapping:
+
+```typescript
+// Backend returns data directly
+{
+  "rawLatexCode": "\\documentclass{article}...",
+  "processedLatexCode": "\\documentclass{article}...",
+  "message": "Resume processed successfully"
+}
+
+// Frontend wraps it as
+{
+  success: true,
+  data: {
+    "rawLatexCode": "\\documentclass{article}...",
+    "processedLatexCode": "\\documentclass{article}...",
+    "message": "Resume processed successfully"
+  }
+}
+```
+
+**Endpoints using `apiRequest`:**
+- `processResume()` - AI resume processing
+- `compileLatex()` - PDF compilation
+- `preprocessLatex()` - LaTeX preprocessing
+- `parseSections()` - Section parsing
+- `filterLatex()` - LaTeX filtering
+- `getProviders()` - Provider list
+- `getTemplates()` - Template list
+- `getInitData()` - Initialization data
+
+#### Direct Fetch (Configuration Endpoints)
+Used for configuration endpoints that return `success` field:
+
+```typescript
+// Backend returns with success field
+{
+  "success": true,
+  "config": {...},
+  "message": "Configuration saved successfully"
+}
+
+// Frontend uses directly
+const result = await response.json();
+if (result.success) { /* handle success */ }
+```
+
+**Endpoints using direct fetch:**
+- `saveConfig()` - Configuration saving
+- `loadConfig()` - Configuration loading
 
 ### React Router Navigation
 
@@ -606,7 +686,7 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    outDir: '../packaging/frontend-dist',  // Centralized build output
+    outDir: 'dist',  // Frontend build output
     emptyOutDir: true,
   },
   server: {
@@ -696,20 +776,28 @@ Windows packaging and distribution settings.
       "createStartMenuShortcut": true
     },
     "files": [
-      "../packaging/frontend-dist/**/*",  // Centralized frontend build
+      "dist/**/*",  // Frontend build output
       "public/electron.cjs",
       "public/icon.ico",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "../packaging/dist/ResumaxBackend.exe",  // PyInstaller executable
-        "to": "ResumaxBackend.exe"
+        "from": "../packaging/dist/ResumaxBackend/",  // PyInstaller folder (onedir mode)
+        "to": "backend/"
+      },
+      {
+        "from": "../backend/Latex_formats",
+        "to": "backend/Latex_formats"
       },
       {
         "from": "../essentialpackage",
         "to": "essentialpackage"
       }
+    ],
+    "asarUnpack": [
+      "**/*.{node,dll}",
+      "dist/**/*"  // Unpack frontend files for Electron file:// protocol
     ]
   }
 }
@@ -726,8 +814,8 @@ The frontend automatically detects and adapts to different environments:
 - Console logging and debugging
 
 **Production Mode**:
-- Static files served from `packaging/frontend-dist/`
-- Electron spawns `ResumaxBackend.exe` executable
+- Static files served from `frontend/dist/` (unpacked from app.asar)
+- Electron spawns backend from `resources/backend/ResumaxBackend.exe`
 - File-based logging
 - Optimized bundle with minification
 
@@ -742,9 +830,10 @@ if (isDev) {
     cwd: path.join(__dirname, '../../backend')
   });
 } else {
-  // Production: spawn PyInstaller executable
-  backendProcess = spawn('ResumaxBackend.exe', [], {
-    cwd: path.join(process.resourcesPath)
+  // Production: spawn backend from onedir structure
+  const backendExe = path.join(process.resourcesPath, 'backend', 'ResumaxBackend.exe');
+  backendProcess = spawn(backendExe, [], {
+    cwd: path.dirname(process.resourcesPath)
   });
 }
 ```
@@ -806,30 +895,30 @@ npm run electron:dev
 
 1. **Frontend Build:**
 ```bash
-# Build React application to centralized location
+# Build React application to frontend/dist/
 npm run build
-# Output: packaging/frontend-dist/
+# Output: frontend/dist/
 ```
 
 2. **Backend Build:**
 ```bash
-# Build PyInstaller executable
+# Build PyInstaller folder (onedir mode)
 pyinstaller packaging/resumax-backend.spec
-# Output: packaging/dist/ResumaxBackend.exe
+# Output: packaging/dist/ResumaxBackend/ (folder with executable and dependencies)
 ```
 
 3. **Electron Package:**
 ```bash
 # Build and package Electron app
 npm run electron:build
-# Output: packaging/release/
+# Output: packaging/release-new/
 ```
 
 4. **Full Build:**
 ```bash
 # Orchestrate complete build process
 packaging/build.bat
-# Creates: packaging/release/Resumax Setup.exe
+# Creates: packaging/release-new/Resumax Setup 1.0.0.exe
 ```
 
 ### Available Scripts
@@ -848,12 +937,32 @@ packaging/build.bat
 
 1. **Start Application**: Launch Electron app
 2. **Configure AI**: Select provider, model, and enter API key
-3. **Upload Resume**: Drag-and-drop or browse for resume file
-4. **Select Template**: Choose from available LaTeX templates
-5. **Process Resume**: AI converts resume to LaTeX format
-6. **Edit Content**: Use LaTeX editor for fine-tuning
-7. **Filter Sections**: Select which sections to include
-8. **Export Results**: Download PDF or LaTeX source
+3. **API Key Validation**: System tests API key with real API call before saving
+4. **Upload Resume**: Drag-and-drop or browse for resume file
+5. **Select Template**: Choose from available LaTeX templates
+6. **Process Resume**: AI converts resume to LaTeX format
+7. **Edit Content**: Use LaTeX editor for fine-tuning
+8. **Filter Sections**: Select which sections to include
+9. **Export Results**: Download PDF or LaTeX source
+
+### API Key Validation Feature
+
+**Overview**: Real-time API key validation ensures users can only save working API keys.
+
+**User Experience**:
+1. User enters API key and clicks "Save Key"
+2. Button shows "Testing..." state with loading indicator
+3. System makes real API call with "hi" message
+4. Shows validation feedback (success/error message)
+5. Only saves configuration if API key is valid
+6. Blocks saving if validation fails with clear error message
+
+**Technical Implementation**:
+- **Backend**: `/api/test-api-key` endpoint with provider-specific testing
+- **Frontend**: `testApiKey()` utility function with error handling
+- **UI**: Loading states, visual feedback, and error display
+- **Cost Optimization**: Minimal token usage (max_tokens: 10)
+- **Provider Support**: Works with OpenAI, Claude, Gemini, and LM Studio
 
 ## Development Guide
 
@@ -1020,6 +1129,28 @@ The application is packaged for Windows using Electron Builder with NSIS install
 - Desktop shortcut (created automatically)
 - Start menu entry (created automatically)
 
+**App.asar Structure:**
+Electron Builder creates an `app.asar` archive for the application, but frontend files must be unpacked for `file://` protocol access:
+
+```
+resources/
+├── app.asar                      # Compressed application files
+│   └── public/electron.cjs      # Main process script
+├── app.asar.unpacked/           # Unpacked files (configured via asarUnpack)
+│   └── dist/                    # Frontend build output
+│       ├── index.html           # Must be unpacked for loadFile()
+│       └── assets/              # JS, CSS, images
+├── backend/                      # Backend onedir folder
+│   ├── ResumaxBackend.exe
+│   └── _internal/               # Python dependencies
+└── essentialpackage/            # TinyTeX and Tesseract
+```
+
+**Why Unpack Frontend Files:**
+- Electron's `loadFile()` cannot read files inside `app.asar` archives
+- `asarUnpack: ["dist/**/*"]` extracts frontend to `app.asar.unpacked/`
+- `electron.cjs` loads from unpacked location in production
+
 **Installation Features:**
 - Custom installation directory selection
 - Desktop and start menu shortcuts
@@ -1058,27 +1189,36 @@ The frontend includes the PyInstaller backend executable as an extra resource:
 {
   "extraResources": [
     {
-      "from": "../packaging/dist/ResumaxBackend.exe",
-      "to": "ResumaxBackend.exe"
+      "from": "../packaging/dist/ResumaxBackend/",
+      "to": "backend/"
+    },
+    {
+      "from": "../backend/Latex_formats",
+      "to": "backend/Latex_formats"
     },
     {
       "from": "../essentialpackage",
       "to": "essentialpackage"
     }
+  ],
+  "asarUnpack": [
+    "**/*.{node,dll}",
+    "dist/**/*"
   ]
 }
 ```
 
 **Backend Requirements:**
-- **Production**: `ResumaxBackend.exe` (PyInstaller executable)
+- **Production**: `ResumaxBackend/` folder with executable and dependencies (onedir mode)
 - **Development**: Python 3.10+ with all dependencies installed
 - **Bundled Dependencies**: Essential package includes Tesseract OCR and TinyTeX
-- **Path Resolution**: Automatic detection of bundled vs system dependencies
+- **Path Resolution**: Working directory-based detection of bundled vs system dependencies
 
 **Process Management:**
 - **Development**: Electron spawns `python main.py`
-- **Production**: Electron spawns `ResumaxBackend.exe`
+- **Production**: Electron spawns `resources/backend/ResumaxBackend.exe`
 - **Cleanup**: Proper SIGTERM/SIGKILL handling with timeout
+- **Exit Handling**: Uses `process.exit(0)` for clean termination
 
 ## Troubleshooting
 
@@ -1107,6 +1247,41 @@ The frontend includes the PyInstaller backend executable as an extra resource:
 - Ensure all dependencies are installed
 - Check Windows Defender/antivirus isn't blocking
 - Increase Node.js memory limit: `node --max-old-space-size=4096`
+
+#### AI Response Not Detected (Production Issue)
+**Issue**: Users get stuck on the AI loading page in production builds.
+
+**Root Cause**: Response format mismatch between backend and frontend:
+- Backend was returning `{success: true, data: {...}}`
+- Frontend's `apiRequest` wrapper was adding another layer: `{success: true, data: {success: true, data: {...}}}`
+- This caused `result.data.rawLatexCode` to return `true` instead of the actual LaTeX code
+
+**Solution**: Backend endpoints now return data directly without `success` field:
+```typescript
+// Before (caused double-wrapping)
+{
+  success: true,
+  data: {
+    success: true,  // This was the problem!
+    rawLatexCode: "actual latex code"
+  }
+}
+
+// After (fixed)
+{
+  success: true,
+  data: {
+    rawLatexCode: "actual latex code"  // Correct!
+  }
+}
+```
+
+**Fixed Endpoints:**
+- `/api/process` - Resume processing
+- `/api/compile-latex` - PDF compilation
+- `/api/preprocess-latex` - LaTeX preprocessing
+- `/api/parse-sections` - Section parsing
+- `/api/filter-latex` - LaTeX filtering
 
 #### TypeScript compilation errors
 **Solution:**

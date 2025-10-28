@@ -26,7 +26,7 @@ NOTE:
 
 from openai import OpenAI
 import logging
-from typing import List
+from typing import List, Tuple
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
@@ -176,6 +176,79 @@ Here is the resume content to format:
 ---
 
 Please format the above resume content using the provided LaTeX template. Return only the complete LaTeX code, ready to compile."""
+
+
+def test_api_key(api_key: str, model_name: str, base_url: str = DEFAULT_BASE_URL) -> Tuple[bool, str]:
+    """
+    Test API key validity by making a minimal API call to LM Studio.
+    
+    CALLED BY: main.py during API key validation
+    
+    PARAMETERS:
+        - api_key: API key for LM Studio (can be any string for local use)
+        - model_name: Model to test with
+        - base_url: LM Studio API endpoint (default: http://localhost:1234/v1)
+    
+    RETURNS:
+        - Tuple[bool, str]: (success, message)
+        - success: True if LM Studio is running and accessible
+        - message: Success message or error description
+    
+    RAISES:
+        - ValueError: If model name is missing or blank
+    """
+    logger.info(f"[API TEST] Testing LM Studio API key with model: {model_name}, base_url: {base_url}")
+    
+    # Validate model name
+    if not model_name or not model_name.strip():
+        raise ValueError("Model name is required for LM Studio")
+    
+    try:
+        # Initialize OpenAI client to communicate with LM Studio local server
+        client = OpenAI(
+            api_key=api_key, 
+            base_url=base_url,
+            max_retries=1,  # Only retry once
+            timeout=10.0    # 10 second timeout for test
+        )
+        
+        # Make minimal test API call
+        logger.info(f"[API TEST] Making test LM Studio API call to {model_name}")
+        response = client.chat.completions.create(
+            model=model_name,
+            temperature=0.1,
+            max_tokens=10,  # Minimal token usage
+            messages=[
+                {"role": "user", "content": "hi"}
+            ]
+        )
+        
+        # Check if we got a valid response
+        if response.choices and len(response.choices) > 0:
+            choice = response.choices[0]
+            if choice.message and choice.message.content:
+                logger.info(f"[API TEST] LM Studio API key test successful for {model_name}")
+                return True, f"LM Studio is running and accessible with {model_name}"
+        
+        logger.error(f"[API TEST] LM Studio API returned empty response for {model_name}")
+        return False, "LM Studio returned empty response"
+        
+    except Exception as e:
+        error_type = type(e).__name__
+        
+        if "AuthenticationError" in error_type:
+            logger.error(f"[API TEST] LM Studio Authentication Error for {model_name}: {str(e)}")
+            return False, f"Authentication error: {str(e)}"
+        elif "RateLimitError" in error_type:
+            logger.error(f"[API TEST] LM Studio Rate Limit Error for {model_name}: {str(e)}")
+            return False, f"Rate limit exceeded: {str(e)}"
+        elif "APIError" in error_type:
+            logger.error(f"[API TEST] LM Studio API Error for {model_name}: {str(e)}")
+            return False, f"API error: {str(e)}"
+        else:
+            # Most likely connection error - LM Studio not running
+            logger.error(f"[API TEST] LM Studio connection error for {model_name}: {str(e)}")
+            return False, f"LM Studio is not running or not accessible at {base_url}. Please ensure LM Studio is running with a model loaded."
 
 
 def _extract_latex_from_response(response) -> str:

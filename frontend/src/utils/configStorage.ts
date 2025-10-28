@@ -24,6 +24,51 @@ export interface ConfigResponse {
 const API_BASE_URL = 'http://localhost:54782';
 
 /**
+ * Test API key validity by making a real API call
+ */
+export async function testApiKey(config: UserConfig): Promise<ConfigResponse> {
+  try {
+    const requestBody: any = {
+      provider: config.selectedProvider,
+      model: config.selectedModel,
+      apiKey: config.apiKey
+    };
+
+    // Add baseUrl for LM Studio if needed
+    if (config.selectedProvider === 'LM Studio') {
+      requestBody.baseUrl = 'http://localhost:1234/v1';
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/test-api-key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('[API TEST] API key test successful:', result.message);
+    } else {
+      console.error('[API TEST] API key test failed:', result.error?.message);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('[API TEST] Failed to test API key:', error);
+    return {
+      success: false,
+      error: {
+        type: 'network_error',
+        message: 'Failed to connect to backend server'
+      }
+    };
+  }
+}
+
+/**
  * Save user configuration to .env file via backend API
  */
 export async function saveConfig(config: UserConfig): Promise<ConfigResponse> {

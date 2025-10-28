@@ -31,15 +31,46 @@ backend_dir = Path(__file__).parent
 project_root = backend_dir.parent
 sys.path.insert(0, str(backend_dir))
 
-# Load environment variables from .env file
-env_path = project_root / '.env'
-load_dotenv(env_path)
-
 # Import provider modules
 from Model_API import claude, gemini, lmstudio, openai
 from Upload import upload_handler
 from Output import pdfgenerator
 from Output import section_selector
+
+
+# Path Resolution Utilities
+def get_writable_path(relative_path: str) -> Path:
+    """
+    Get path for writable files using working directory.
+    Fallback to AppData if not writable.
+    
+    PARAMETERS:
+        - relative_path: Path relative to installation root (e.g., '.env', 'logs/backend.log')
+    
+    RETURNS:
+        - Absolute Path to the writable file location
+    """
+    # Use working directory (installation root)
+    install_root = Path(os.getcwd())
+    primary_path = install_root / relative_path
+    
+    # Try installation directory
+    try:
+        primary_path.parent.mkdir(parents=True, exist_ok=True)
+        test_file = primary_path.parent / '.write_test'
+        test_file.touch()
+        test_file.unlink()
+        return primary_path
+    except (PermissionError, OSError):
+        # Fallback to AppData
+        appdata = Path(os.getenv('APPDATA', os.path.expanduser('~'))) / 'Resumax'
+        appdata.mkdir(parents=True, exist_ok=True)
+        return appdata / relative_path
+
+
+# Load environment variables from .env file
+env_path = get_writable_path('.env')
+load_dotenv(env_path)
 
 # Environment Configuration Utilities
 def load_env_config() -> Dict[str, str]:
@@ -154,13 +185,9 @@ def setup_logging():
     
     if getattr(sys, 'frozen', False):
         # Production mode: Log to file
-        # Create logs directory in installation root
-        exe_dir = Path(sys.executable).parent
-        install_root = exe_dir.parent.parent
-        logs_dir = install_root / "logs"
-        logs_dir.mkdir(exist_ok=True)
-        
-        log_file = logs_dir / "resumax-backend.log"
+        # Create logs directory with writable path fallback
+        log_file = get_writable_path('logs/resumax-backend.log')
+        log_file.parent.mkdir(parents=True, exist_ok=True)
         
         # File handler with rotation
         file_handler = logging.handlers.RotatingFileHandler(
@@ -403,6 +430,59 @@ def health_check():
         'message': 'Backend server is running',
         'timestamp': time.time()
     })
+
+
+@app.route('/api/test-api-key', methods=['POST'])
+def test_api_key():
+    """Test API key validity by making a real API call"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['provider', 'model', 'apiKey']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return create_error_response('validation_error', f'Missing required field: {field}', field=field)
+        
+        provider = data['provider']
+        model = data['model']
+        api_key = data['apiKey']
+        base_url = data.get('baseUrl')  # Optional for LM Studio
+        
+        logger.info(f"[API TEST] Testing API key for provider: {provider}, model: {model}")
+        
+        try:
+            # Get provider module
+            provider_module = get_provider_module(provider)
+            
+            # Call provider's test function
+            if provider == 'LM Studio':
+                # LM Studio needs base_url parameter
+                success, message = provider_module.test_api_key(api_key, model, base_url)
+            else:
+                # Other providers only need api_key and model
+                success, message = provider_module.test_api_key(api_key, model)
+            
+            if success:
+                logger.info(f"[API TEST] API key test successful for {provider}/{model}")
+                return jsonify({
+                    'success': True,
+                    'message': message
+                })
+            else:
+                logger.error(f"[API TEST] API key test failed for {provider}/{model}: {message}")
+                return create_error_response('api_test_error', message, field='apiKey', status_code=400)
+                
+        except ValueError as e:
+            logger.error(f"[API TEST] Validation error for {provider}/{model}: {str(e)}")
+            return create_error_response('validation_error', str(e), field='model', status_code=400)
+        except Exception as e:
+            logger.error(f"[API TEST] Unexpected error testing {provider}/{model}: {str(e)}")
+            return create_error_response('api_test_error', f"API test failed: {str(e)}", status_code=500)
+            
+    except Exception as e:
+        logger.error(f"Error in test-api-key endpoint: {e}")
+        return create_error_response('api_error', f"API test request failed: {str(e)}", status_code=500)
 
 
 @app.route('/api/save-config', methods=['POST'])
@@ -695,7 +775,6 @@ def compile_latex():
             logger.info(f"[COMPILE] LaTeX compilation successful - PDF size: {len(pdf_bytes)} bytes - Duration: {compile_duration:.2f}s")
             
             return jsonify({
-                'success': True,
                 'pdfData': pdf_base64,
                 'message': 'LaTeX compiled successfully'
             })
@@ -752,7 +831,6 @@ def preprocess_latex_endpoint():
             logger.info(f"[PREPROCESS] LaTeX preprocessing successful - Processed length: {len(processed_latex)} characters - Duration: {preprocess_duration:.2f}s")
             
             return jsonify({
-                'success': True,
                 'processedLatex': processed_latex,
                 'message': 'LaTeX preprocessed successfully'
             })
@@ -797,7 +875,6 @@ def parse_sections():
             logger.info(f"[PARSE] Section parsing successful - Found {len(metadata)} sections")
             
             return jsonify({
-                'success': True,
                 'parsedData': parsed_data,
                 'metadata': metadata,
                 'message': 'LaTeX sections parsed successfully'
@@ -842,7 +919,6 @@ def filter_latex():
             logger.info(f"[FILTER] LaTeX filtering successful - Filtered code length: {len(filtered_latex)} characters")
             
             return jsonify({
-                'success': True,
                 'filteredLatex': filtered_latex,
                 'message': 'LaTeX filtered successfully'
             })
@@ -979,7 +1055,6 @@ def process_resume():
             logger.info(f"[AI RESPONSE] Resume processing completed successfully - Total time: {total_duration:.2f}s")
             logger.info("Resume processed successfully")
             return jsonify({
-                'success': True,
                 'rawLatexCode': raw_latex_code,
                 'processedLatexCode': processed_latex_code,
                 'message': 'Resume processed successfully'

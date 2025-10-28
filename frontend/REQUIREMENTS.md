@@ -100,19 +100,24 @@ The application uses electron-builder for Windows packaging with centralized bui
 ```
 packaging/
 ├── dist/
-│   └── ResumaxBackend.exe     # PyInstaller backend executable
-├── frontend-dist/             # React build output
-├── release/                   # Final installer artifacts
-│   ├── Resumax Setup.exe      # NSIS installer
-│   └── Resumax.exe            # Portable application
+│   └── ResumaxBackend/        # PyInstaller backend folder (onedir mode)
+│       ├── ResumaxBackend.exe
+│       └── _internal/         # Dependencies
+├── release-new/               # Final installer artifacts
+│   ├── Resumax Setup 1.0.0.exe # Windows installer (only file needed for distribution)
+│   ├── *.yml, *.yaml, *.blockmap # Build artifacts (not needed for distribution)
+│   └── win-unpacked/          # Unpacked for testing
 ├── build.bat                  # Full build orchestration script
 └── resumax-backend.spec       # PyInstaller configuration
+
+frontend/
+└── dist/                      # React build output (not in packaging/)
 ```
 
 **Build Process:**
-1. **Frontend Build**: `npm run build` → `packaging/frontend-dist/`
-2. **Backend Build**: `pyinstaller packaging/resumax-backend.spec` → `packaging/dist/ResumaxBackend.exe`
-3. **Electron Package**: `npm run electron:build` → `packaging/release/`
+1. **Frontend Build**: `npm run build` → `frontend/dist/`
+2. **Backend Build**: `pyinstaller packaging/resumax-backend.spec` → `packaging/dist/ResumaxBackend/` (onedir mode)
+3. **Electron Package**: `npm run electron:build` → `packaging/release-new/`
 4. **Full Build**: `packaging/build.bat` → Complete installer
 
 ## Windows Compatibility Notes

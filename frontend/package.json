@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:dev": "concurrently --kill-others \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "build:backend": "cd ../packaging && pyinstaller resumax-backend.spec --clean --noconfirm",
     "build:electron": "npm run build && electron-builder --win",
     "build:full": "npm run build:backend && npm run build:electron"
@@ -39,7 +39,7 @@
     "appId": "com.resumax.app",
     "productName": "Resumax",
     "directories": {
-      "output": "../packaging/release",
+      "output": "../packaging/release-new",
       "buildResources": "public"
     },
     "win": {
@@ -63,16 +63,16 @@
       "shortcutName": "Resumax"
     },
     "files": [
-      "../packaging/frontend-dist/**/*",
       "public/electron.cjs",
       "public/preload.js",
       "public/icon.ico",
+      "dist/**/*",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "../packaging/dist/ResumaxBackend.exe",
-        "to": "backend/ResumaxBackend.exe"
+        "from": "../packaging/dist/ResumaxBackend/",
+        "to": "backend/"
       },
       {
         "from": "../backend/Latex_formats",
@@ -84,7 +84,8 @@
       }
     ],
     "asarUnpack": [
-      "backend/**/*"
+      "**/*.{node,dll}",
+      "dist/**/*"
     ]
   }
 }

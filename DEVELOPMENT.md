@@ -181,12 +181,24 @@ cd frontend && npm run electron:dev
 
 **Build for production:**
 ```bash
-# Build React app
+# Build React app (outputs to frontend/dist/)
 cd frontend && npm run build
 
-# Package Electron app
+# Package Electron app (uses onedir backend mode)
 cd frontend && npm run electron:build
 ```
+
+**Full build process:**
+```bash
+# Run complete build orchestration
+cd packaging
+build.bat
+```
+
+This creates:
+- `packaging/dist/ResumaxBackend/` - Backend folder (onedir mode)
+- `frontend/dist/` - Frontend build output
+- `packaging/release-new/Resumax Setup 1.0.0.exe` - Windows installer
 
 **Test the application:**
 ```bash
@@ -204,6 +216,8 @@ cd frontend && npm test
 3. **Template Selection**: Choose from ATS, Modern, cool, or Two-Column layouts
 4. **Section Filtering**: "Lego blocks" architecture - parse, split, select, reassemble
 5. **LaTeX Compilation**: Convert LaTeX code to PDF using TinyTeX
+6. **HashRouter**: Frontend uses HashRouter for Electron file:// protocol compatibility
+7. **Working Directory Paths**: Backend uses `os.getcwd()` for resource location
 
 ### Section Filtering Architecture
 
@@ -228,6 +242,85 @@ The application uses a "lego blocks" approach for section management:
 - **Format-agnostic**: Same assembly logic for all formats
 - **Order Preserved**: Sections maintain original document order
 - **Debug Ready**: Automatic debug file generation for troubleshooting
+
+### Working Directory Path Resolution
+
+The backend uses a working directory-based approach for reliable resource location in production:
+
+**Implementation:**
+```python
+import os
+from pathlib import Path
+
+# Electron sets working directory to installation root
+working_dir = Path(os.getcwd())
+resources_dir = working_dir / "resources"
+
+if resources_dir.exists():
+    # Production: resources in bundled folder
+    essentialpackage_path = resources_dir / "essentialpackage"
+else:
+    # Development: resources in project root
+    essentialpackage_path = working_dir / "essentialpackage"
+```
+
+**Why This Approach:**
+- Electron sets `cwd` to installation root when spawning backend
+- More predictable than `sys._MEIPASS` or `sys.executable` paths
+- Works consistently across onedir and onefile modes
+- Simple fallback for development vs production
+
+**Writable Files:**
+Backend prioritizes installation directory for writable files (`.env`, logs), with AppData fallback:
+```python
+def get_writable_path(relative_path: str) -> Path:
+    install_root = Path(os.getcwd())
+    primary_path = install_root / relative_path
+    try:
+        # Test if writable
+        primary_path.parent.mkdir(parents=True, exist_ok=True)
+        test_file = primary_path.parent / '.write_test'
+        test_file.touch()
+        test_file.unlink()
+        return primary_path
+    except (PermissionError, OSError):
+        # Fallback to AppData
+        appdata = Path(os.getenv('APPDATA', os.path.expanduser('~'))) / 'Resumax'
+        appdata.mkdir(parents=True, exist_ok=True)
+        return appdata / relative_path
+```
+
+### HashRouter for Electron Compatibility
+
+The frontend uses `HashRouter` instead of `BrowserRouter` for Electron compatibility:
+
+**Why HashRouter:**
+- Electron loads frontend via `file://` protocol
+- `BrowserRouter` requires HTTP server and fails with `file://`
+- `HashRouter` uses URL fragments (`#/templates`) that work with local files
+- All client-side routing works without a server
+
+**Implementation:**
+```typescript
+// In App.tsx
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<ResumaxUI />} />
+        <Route path="/templates" element={<TemplateSelection />} />
+        {/* Other routes */}
+      </Routes>
+    </Router>
+  );
+}
+```
+
+**Navigation:**
+- Development: `http://localhost:5173/#/templates`
+- Production: `file:///path/to/app/#/templates`
 
 ## 🛠️ Contributing Guide
 

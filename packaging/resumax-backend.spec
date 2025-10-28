@@ -23,8 +23,8 @@ a = Analysis(
         ('../backend/Model_API/system-prompt.txt', 'Model_API'),
         # Include Section parsers
         ('../backend/Section_parsers', 'Section_parsers'),
-        # Include essentialpackage (Tesseract and TinyTeX)
-        ('../essentialpackage', 'essentialpackage'),
+        # Note: essentialpackage is NOT bundled in exe - it's external in resources/essentialpackage/
+        # Handled by electron-builder's extraResources configuration
     ],
     hiddenimports=[
         # Flask and web framework
@@ -89,8 +89,6 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Exclude essentialpackage - handled separately
-        'essentialpackage',
         # Exclude development tools
         'pytest',
         'pytest_*',
@@ -116,22 +114,30 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,  # KEY CHANGE: Don't bundle everything in exe (onedir mode)
     name='ResumaxBackend',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,  # Critical: No console window
+    console=False,  # No console window
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon=None,
+)
+
+# COLLECT creates folder structure with all dependencies (onedir mode)
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='ResumaxBackend',
 )

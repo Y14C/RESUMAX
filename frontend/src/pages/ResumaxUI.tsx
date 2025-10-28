@@ -7,10 +7,15 @@ import {
   getLoadingError,
   preloadRemainingPdfs
 } from '../utils/dataPreloader';
-import { saveConfig, loadConfig, UserConfig } from '../utils/configStorage';
+import { saveConfig, loadConfig, testApiKey, UserConfig } from '../utils/configStorage';
 const ResumaxUI: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('provider');
+  
+  // DEBUG: Log when component mounts
+  useEffect(() => {
+    console.log('[RESUMAX UI] Component mounted and rendering');
+  }, []);
   const [showConfiguration, setShowConfiguration] = useState(false);
   const [showUploadPanel, setShowUploadPanel] = useState(false);
   const [tabIndicatorKey, setTabIndicatorKey] = useState(0);
@@ -37,6 +42,9 @@ const ResumaxUI: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   // Configuration error state
   const [configError, setConfigError] = useState<string>('');
+  // API testing state
+  const [isTestingApi, setIsTestingApi] = useState(false);
+  const [apiTestMessage, setApiTestMessage] = useState('');
   
   // Refs for click-outside detection
   const configPanelRef = useRef<HTMLDivElement>(null);
@@ -735,6 +743,7 @@ const ResumaxUI: React.FC = () => {
                             }
                             
                             setConfigError(''); // Clear any previous errors
+                            setApiTestMessage(''); // Clear any previous test messages
                             
                             try {
                               const config: UserConfig = {
@@ -743,19 +752,41 @@ const ResumaxUI: React.FC = () => {
                                 apiKey: apiKey.trim()
                               };
                               
+                              // Test API key first
+                              setIsTestingApi(true);
+                              setApiTestMessage('Testing API key...');
+                              
+                              const testResponse = await testApiKey(config);
+                              
+                              if (!testResponse.success) {
+                                setIsTestingApi(false);
+                                setApiTestMessage('');
+                                setConfigError(testResponse.error?.message || 'API key test failed');
+                                return;
+                              }
+                              
+                              // API test successful, now save config
+                              setApiTestMessage('API key valid! Saving configuration...');
                               const response = await saveConfig(config);
+                              
+                              setIsTestingApi(false);
+                              setApiTestMessage('');
                               
                               if (response.success) {
                                 setSavedKey(apiKey);
                                 setApiKey('');
+                                setApiTestMessage('Configuration saved successfully!');
                                 // Auto-close config menu after saving
                                 setTimeout(() => {
                                   handleConfigToggle();
-                                }, 300);
+                                  setApiTestMessage('');
+                                }, 2000);
                               } else {
                                 setConfigError(response.error?.message || 'Failed to save configuration');
                               }
                             } catch (error) {
+                              setIsTestingApi(false);
+                              setApiTestMessage('');
                               console.error('[CONFIG] Error saving configuration:', error);
                               setConfigError('Failed to save configuration');
                             }
@@ -764,10 +795,13 @@ const ResumaxUI: React.FC = () => {
                             ...buttonStyle,
                             flex: 1,
                             padding: '12px 24px',
-                            background: 'transparent',
+                            background: isTestingApi ? 'rgba(236, 72, 153, 0.2)' : 'transparent',
                             border: '1px solid rgba(236, 72, 153, 0.5)',
-                            color: '#ec4899'
+                            color: isTestingApi ? '#ec4899' : '#ec4899',
+                            opacity: isTestingApi ? 0.7 : 1,
+                            cursor: isTestingApi ? 'not-allowed' : 'pointer'
                           }}
+                          disabled={isTestingApi}
                           data-magnetic
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)';
@@ -778,7 +812,7 @@ const ResumaxUI: React.FC = () => {
                             e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
-                          Save Key
+                          {isTestingApi ? 'Testing...' : 'Save Key'}
                         </button>
                 <button
                   onClick={(e) => {
@@ -828,6 +862,19 @@ const ResumaxUI: React.FC = () => {
                   color: '#fca5a5' 
                 }}>
                   {configError}
+                </div>
+              )}
+              {apiTestMessage && (
+                <div style={{ 
+                  marginTop: '12px', 
+                  padding: '8px 12px', 
+                  backgroundColor: isTestingApi ? 'rgba(59, 130, 246, 0.1)' : 'rgba(34, 197, 94, 0.1)', 
+                  border: isTestingApi ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(34, 197, 94, 0.3)', 
+                  borderRadius: '6px', 
+                  fontSize: '14px', 
+                  color: isTestingApi ? '#93c5fd' : '#86efac' 
+                }}>
+                  {apiTestMessage}
                 </div>
               )}
             </div>

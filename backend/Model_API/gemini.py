@@ -20,7 +20,7 @@ ERROR HANDLING:
 
 import google.generativeai as genai
 import logging
-from typing import List
+from typing import List, Tuple
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
@@ -143,6 +143,72 @@ Here is the resume content to format:
 Please format the above resume content using the provided LaTeX template. Return only the complete LaTeX code, ready to compile."""
     
     return user_message
+
+
+def test_api_key(api_key: str, model_name: str) -> Tuple[bool, str]:
+    """
+    Test API key validity by making a minimal API call.
+    
+    CALLED BY: main.py during API key validation
+    
+    PARAMETERS:
+        - api_key: Google API key to test
+        - model_name: Model to test with (must be from AVAILABLE_MODELS)
+    
+    RETURNS:
+        - Tuple[bool, str]: (success, message)
+        - success: True if API key is valid and working
+        - message: Success message or error description
+    
+    RAISES:
+        - ValueError: If model name is invalid
+    """
+    logger.info(f"[API TEST] Testing Gemini API key with model: {model_name}")
+    
+    # Validate model name
+    if model_name not in AVAILABLE_MODELS:
+        raise ValueError(f"Invalid model name: {model_name}. Must be one of {AVAILABLE_MODELS}")
+    
+    try:
+        # Configure API key
+        genai.configure(api_key=api_key)
+        
+        # Initialize model with minimal generation config
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            generation_config={
+                "temperature": 0.1,
+                "max_output_tokens": 10,  # Minimal token usage
+            }
+        )
+        
+        # Make minimal test API call
+        logger.info(f"[API TEST] Making test Gemini API call to {model_name}")
+        response = model.generate_content("hi")
+        
+        # Check if we got a valid response
+        if response and hasattr(response, 'text') and response.text:
+            logger.info(f"[API TEST] Gemini API key test successful for {model_name}")
+            return True, f"API key is valid and working with {model_name}"
+        else:
+            logger.error(f"[API TEST] Gemini API returned empty response for {model_name}")
+            return False, "API returned empty response"
+            
+    except Exception as e:
+        error_message = str(e)
+        
+        if "API_KEY_INVALID" in error_message or "invalid API key" in error_message.lower():
+            logger.error(f"[API TEST] Gemini Authentication Error for {model_name}: {error_message}")
+            return False, f"Invalid API key: {error_message}"
+        elif "quota" in error_message.lower() or "rate" in error_message.lower():
+            logger.error(f"[API TEST] Gemini Rate Limit Error for {model_name}: {error_message}")
+            return False, f"Rate limit exceeded: {error_message}"
+        elif "permission" in error_message.lower():
+            logger.error(f"[API TEST] Gemini Permission Error for {model_name}: {error_message}")
+            return False, f"Permission error: {error_message}"
+        else:
+            logger.error(f"[API TEST] Unexpected error in Gemini API test for {model_name}: {error_message}")
+            return False, f"Unexpected error: {error_message}"
 
 
 def _extract_latex_from_response(response) -> str:

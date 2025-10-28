@@ -166,9 +166,13 @@ AVAILABLE_MODELS = [
     "claude-haiku-4-20250514"       # Claude Haiku 4.5
 ]
 
-# Main Function
+# Main Functions
 def format_resume(api_key, model_name, system_prompt, latex_format, extracted_text):
     # Returns formatted LaTeX code
+
+def test_api_key(api_key, model_name):
+    # Tests API key validity with minimal "hi" message
+    # Returns (success: bool, message: str)
 ```
 
 #### gemini.py - Google Gemini Integration
@@ -179,6 +183,14 @@ AVAILABLE_MODELS = [
     "gemini-2.5-flash",         # Balanced speed and performance
     "gemini-2.5-flash-lite"     # Fastest and most cost-efficient
 ]
+
+# Main Functions
+def format_resume(api_key, model_name, system_prompt, latex_format, extracted_text):
+    # Returns formatted LaTeX code
+
+def test_api_key(api_key, model_name):
+    # Tests API key validity with minimal "hi" message
+    # Returns (success: bool, message: str)
 ```
 
 #### openai.py - OpenAI Integration
@@ -189,12 +201,34 @@ AVAILABLE_MODELS = [
     "gpt-4.1-2025-04-14",            # GPT-4.1 - Smartest non-reasoning
     "o3-2025-04-16"                  # o3 - Advanced reasoning
 ]
+
+# Main Functions
+def format_resume(api_key, model_name, system_prompt, latex_format, extracted_text):
+    # Returns formatted LaTeX code
+
+def test_api_key(api_key, model_name):
+    # Tests API key validity with minimal "hi" message
+    # Returns (success: bool, message: str)
 ```
 
 #### lmstudio.py - LM Studio Integration
 - Supports local AI models via OpenAI-compatible API
 - Automatically detects running LM Studio instances
 - Dynamic model discovery from local server
+
+```python
+# Main Functions
+def get_available_models(api_key, base_url):
+    # Returns list of available models from running LM Studio
+
+def format_resume(api_key, model_name, system_prompt, latex_format, extracted_text, base_url):
+    # Returns formatted LaTeX code
+
+def test_api_key(api_key, model_name, base_url):
+    # Tests LM Studio connectivity with minimal "hi" message
+    # Returns (success: bool, message: str)
+    # Special handling for local connectivity testing
+```
 
 ### Upload Package
 
@@ -339,6 +373,102 @@ Load current configuration.
 }
 ```
 
+#### `POST /api/test-api-key`
+Test API key validity by making a real API call.
+```json
+// Request
+{
+  "provider": "OpenAI",
+  "model": "gpt-4.1-2025-04-14",
+  "apiKey": "sk-...",
+  "baseUrl": "http://localhost:1234/v1"  // Optional for LM Studio
+}
+
+// Response (Success)
+{
+  "success": true,
+  "message": "API key is valid and working with gpt-4.1-2025-04-14"
+}
+
+// Response (Error)
+{
+  "success": false,
+  "error": {
+    "type": "api_test_error",
+    "message": "Invalid API key: Incorrect API key provided",
+    "field": "apiKey"
+  }
+}
+```
+
+**Features:**
+- **Real API Testing**: Makes actual API call with "hi" message to verify functionality
+- **Cost Optimization**: Uses minimal token settings (max_tokens: 10) to reduce costs
+- **Provider Support**: Works with OpenAI, Claude, Gemini, and LM Studio
+- **Error Handling**: Comprehensive error categorization (auth, rate limit, API errors)
+- **LM Studio Support**: Special handling for local connectivity testing
+
+### API Response Format Standards
+
+The backend uses two different response formats depending on how the frontend consumes the endpoint:
+
+#### Direct Response Format (for `apiRequest` wrapper)
+Endpoints used with the frontend's `apiRequest` function return data directly without a `success` field:
+
+```json
+// Success Response
+{
+  "rawLatexCode": "\\documentclass{article}...",
+  "processedLatexCode": "\\documentclass{article}...",
+  "message": "Resume processed successfully"
+}
+
+// Error Response (via create_error_response)
+{
+  "success": false,
+  "error": {
+    "type": "api_error",
+    "message": "Error description"
+  }
+}
+```
+
+**Endpoints using this format:**
+- `POST /api/process` - Resume processing
+- `POST /api/compile-latex` - PDF compilation
+- `POST /api/preprocess-latex` - LaTeX preprocessing
+- `POST /api/parse-sections` - Section parsing
+- `POST /api/filter-latex` - LaTeX filtering
+- `GET /api/providers` - Provider list
+- `GET /api/templates` - Template list
+- `GET /api/init` - Initialization data
+
+#### Success Field Format (for direct fetch)
+Endpoints used with direct `fetch()` calls include a `success` field:
+
+```json
+// Success Response
+{
+  "success": true,
+  "config": {...},
+  "message": "Operation successful"
+}
+
+// Error Response
+{
+  "success": false,
+  "error": {
+    "type": "validation_error",
+    "message": "Error description",
+    "field": "fieldName"
+  }
+}
+```
+
+**Endpoints using this format:**
+- `POST /api/save-config` - Configuration saving
+- `GET /api/load-config` - Configuration loading
+
 ### Provider and Template Endpoints
 
 #### `GET /api/providers`
@@ -406,7 +536,6 @@ Process resume with AI model.
 
 // Response
 {
-  "success": true,
   "rawLatexCode": "\\documentclass{article}...",
   "processedLatexCode": "\\documentclass{article}...",
   "message": "Resume processed successfully"
@@ -425,7 +554,6 @@ Compile LaTeX to PDF.
 
 // Response
 {
-  "success": true,
   "pdfData": "base64-encoded-pdf",
   "message": "LaTeX compiled successfully"
 }
@@ -441,7 +569,6 @@ Preprocess LaTeX code.
 
 // Response
 {
-  "success": true,
   "processedLatex": "cleaned latex code",
   "message": "LaTeX preprocessed successfully"
 }
@@ -458,7 +585,6 @@ Parse LaTeX into sections.
 
 // Response
 {
-  "success": true,
   "parsedData": {
     "format_id": "ATS",
     "latex_blocks": {
@@ -498,7 +624,6 @@ Generate filtered LaTeX based on selections.
 
 // Response
 {
-  "success": true,
   "filteredLatex": "filtered latex code",
   "message": "LaTeX filtered successfully"
 }
@@ -788,38 +913,47 @@ The backend is packaged as a standalone Windows executable using PyInstaller:
 ```
 packaging/
 ├── dist/
-│   └── ResumaxBackend.exe          # PyInstaller executable
-├── frontend-dist/                   # React build output
-└── release/                         # Final installer
-    ├── Resumax Setup.exe           # NSIS installer
-    └── Resumax.exe                 # Portable app
+│   └── ResumaxBackend/              # PyInstaller folder (onedir mode)
+│       ├── ResumaxBackend.exe
+│       └── _internal/               # Dependencies
+├── release-new/                     # Final installer
+│   ├── Resumax Setup 1.0.0.exe     # Windows installer (only file needed for distribution)
+│   ├── *.yml, *.yaml, *.blockmap   # Build artifacts (not needed for distribution)
+│   └── win-unpacked/                # Unpacked for testing
+
+frontend/
+└── dist/                            # React build output (not in packaging/)
 ```
 
 **Bundled Components:**
 - `essentialpackage/TinyTeX/` - LaTeX distribution
 - `essentialpackage/Tesseract-OCR/` - OCR support
-- `ResumaxBackend.exe` - Complete Python backend
+- `ResumaxBackend/` - Complete Python backend folder (onedir mode)
 
 ### Path Resolution
 
-The backend automatically detects production vs development environment:
+The backend uses working directory-based path resolution for reliable resource location:
 
 ```python
-import sys
+import os
+
+# Working directory approach (set by Electron)
+working_dir = Path(os.getcwd())
+resources_dir = working_dir / "resources"
 
 # Production detection
-if getattr(sys, 'frozen', False):
-    # Running as PyInstaller executable
-    BASE_DIR = Path(sys._MEIPASS)
+if resources_dir.exists():
+    # Production mode - resources in resources/ folder
+    BASE_DIR = resources_dir
     BUNDLED_MODE = True
 else:
-    # Development mode
-    BASE_DIR = Path(__file__).parent
+    # Development mode - resources in project root
+    BASE_DIR = working_dir
     BUNDLED_MODE = False
 ```
 
 **Path Priority:**
-1. **Production**: Bundled paths in `sys._MEIPASS`
+1. **Production**: Resources in `resources/` folder (bundled)
 2. **Development**: Project root paths
 3. **Fallback**: System installation paths
 
@@ -905,6 +1039,30 @@ CMD ["python", "main.py"]
 - Verify API keys in `.env` file
 - Check API key validity with provider dashboard
 - Ensure no extra spaces in API keys
+
+#### AI Response Not Detected in Production
+**Issue**: Users get stuck on the AI loading page in production builds.
+
+**Root Cause**: Response format mismatch between backend and frontend:
+- Backend was returning `{success: true, data: {...}}`
+- Frontend's `apiRequest` wrapper was adding another layer: `{success: true, data: {success: true, data: {...}}}`
+- This caused `result.data.rawLatexCode` to return `true` instead of the actual LaTeX code
+
+**Solution**: Updated backend endpoints to return data directly without `success` field:
+- `/api/process` - Resume processing
+- `/api/compile-latex` - PDF compilation  
+- `/api/preprocess-latex` - LaTeX preprocessing
+- `/api/parse-sections` - Section parsing
+- `/api/filter-latex` - LaTeX filtering
+
+**Fixed Response Format**:
+```json
+{
+  "rawLatexCode": "\\documentclass{article}...",
+  "processedLatexCode": "\\documentclass{article}...", 
+  "message": "Resume processed successfully"
+}
+```
 
 #### LaTeX compilation errors
 **Solution**:

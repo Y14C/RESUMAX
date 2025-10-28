@@ -220,6 +220,17 @@ def _split_latex_into_blocks(latex_code: str, parser_output: Dict, format_id: st
         # Extract full section content
         section_content = latex_code[section_pos['start']:section_end]
         
+        # Check for environment wrapper and adjust section boundary if needed
+        # This prevents orphaned closing tags from bleeding into next section
+        environment_wrapper = _detect_environment_wrapper(section_content)
+        if environment_wrapper:
+            # If the environment closing tag extends beyond the natural section boundary,
+            # trim the section content to end at the closing tag
+            env_end_pos = environment_wrapper['end_pos']
+            if env_end_pos < len(section_content):
+                section_content = section_content[:env_end_pos]
+                logger.info(f"[SPLIT] Trimmed section '{section_pos['title']}' to end at environment closing tag")
+        
         # Extract section header (first line/marker)
         header_end = section_pos['end'] - section_pos['start']
         # Extend to include newlines after header
@@ -269,8 +280,20 @@ def _split_latex_into_blocks(latex_code: str, parser_output: Dict, format_id: st
         # Update last section to not include closing
         sections_dict[last_key]['full_content'] = last_section_content[:split_pos].rstrip()
         
-        # Extract closing
-        closing = last_section_content[split_pos:]
+        # Extract closing - ensure only one \end{document}
+        closing_content = last_section_content[split_pos:]
+        
+        # Check for duplicate \end{document} and keep only the first one
+        end_doc_pattern = r'\\end\s*\{\s*document\s*\}'
+        end_doc_matches = list(re.finditer(end_doc_pattern, closing_content))
+        
+        if len(end_doc_matches) > 1:
+            # Multiple \end{document} found, keep only the first one
+            first_end_pos = end_doc_matches[0].end()
+            closing = closing_content[:first_end_pos]
+            logger.warning(f"[SPLIT] Found {len(end_doc_matches)} \\end{{document}} tags, keeping only the first one")
+        else:
+            closing = closing_content
     else:
         # Check if closing is after all sections
         last_section_end = section_positions[-1]['start'] + len(last_section_content)
@@ -279,6 +302,17 @@ def _split_latex_into_blocks(latex_code: str, parser_output: Dict, format_id: st
         else:
             closing = '\n\\end{document}'
     
+    # Final defensive check: ensure closing doesn't have duplicates
+    if closing:
+        end_doc_pattern = r'\\end\s*\{\s*document\s*\}'
+        end_doc_matches = list(re.finditer(end_doc_pattern, closing))
+        
+        if len(end_doc_matches) > 1:
+            # Multiple \end{document} found, keep only the first one
+            first_end_pos = end_doc_matches[0].end()
+            closing = closing[:first_end_pos]
+            logger.warning(f"[SPLIT] Final cleanup: Found {len(end_doc_matches)} \\end{{document}} tags in closing, keeping only the first one")
+    
     return {
         'preamble': preamble,
         'sections': sections_dict,
@@ -286,28 +320,18 @@ def _split_latex_into_blocks(latex_code: str, parser_output: Dict, format_id: st
     }
 
 
-def _extract_subsection_items(section_content: str, subsections: List[str]) -> Tuple[Dict[str, str], dict]:
+def _detect_environment_wrapper(section_content: str) -> Optional[dict]:
     """
-    Extract individual subsection items from section content.
-    Also detects and stores environment wrappers (like \\begin{multicols}...\\end{multicols}).
+    Detect if section content has an environment wrapper (like \\begin{multicols}...\\end{multicols}).
     
     Args:
         section_content: Full section LaTeX block
-        subsections: List of subsection titles/text from parser
     
     Returns:
-        Dictionary mapping item_0, item_1, etc. to LaTeX blocks, plus environment_wrapper info
+        Environment wrapper info dict or None if no wrapper found
     """
-    if not subsections:
-        return {}
-    
-    items = {}
-    environment_wrapper = None
-    
-    # First, detect if there's an environment wrapper around the items
-    # Look for \begin{env} after section header and before first item
-    # Only consider special wrapper environments, NOT itemize/enumerate which are part of the structure
-    wrapper_environments = ['multicols', 'tabular', 'minipage', 'columns']  # Known wrapper environments
+    # Known wrapper environments
+    wrapper_environments = ['multicols', 'tabular', 'minipage', 'columns']
     
     env_pattern = r'\\begin\{([^}]+)\}(?:\{[^}]*\})?'
     env_match = re.search(env_pattern, section_content)
@@ -328,16 +352,40 @@ def _extract_subsection_items(section_content: str, subsections: List[str]) -> T
                 env_end = end_match.end()
                 env_close_command = end_match.group(0)
                 
-                # Store environment wrapper info
-                environment_wrapper = {
+                return {
                     'name': env_name,
                     'open_command': env_open_command,
                     'close_command': env_close_command,
                     'start_pos': env_start,
                     'end_pos': env_end
                 }
-                
-                logger.info(f"[SPLIT] Detected environment wrapper: {env_name} ({env_open_command} ... {env_close_command})")
+    
+    return None
+
+
+def _extract_subsection_items(section_content: str, subsections: List[str]) -> Tuple[Dict[str, str], dict]:
+    """
+    Extract individual subsection items from section content.
+    Also detects and stores environment wrappers (like \\begin{multicols}...\\end{multicols}).
+    
+    Args:
+        section_content: Full section LaTeX block
+        subsections: List of subsection titles/text from parser
+    
+    Returns:
+        Dictionary mapping item_0, item_1, etc. to LaTeX blocks, plus environment_wrapper info
+    """
+    if not subsections:
+        return {}
+    
+    items = {}
+    environment_wrapper = None
+    
+    # Detect environment wrapper using the helper function
+    environment_wrapper = _detect_environment_wrapper(section_content)
+    
+    if environment_wrapper:
+        logger.info(f"[SPLIT] Detected environment wrapper: {environment_wrapper['name']} ({environment_wrapper['open_command']} ... {environment_wrapper['close_command']})")
     
     # Strategy: Find each subsection text and look backward for LaTeX command
     for i, subsection_text in enumerate(subsections):
@@ -415,6 +463,13 @@ def _extract_subsection_items(section_content: str, subsections: List[str]) -> T
             
             # Extract item content
             item_content = section_content[item_start:item_end]
+            
+            # Defensive check: Remove any \end{document} from item content
+            # This can happen when the last item includes the document closing
+            if '\\end{document}' in item_content:
+                end_doc_pos = item_content.find('\\end{document}')
+                item_content = item_content[:end_doc_pos].rstrip()
+                logger.info(f"[SPLIT] Removed \\end{{document}} from item_{i} in subsection extraction")
             
             # For non-last items, add blank line for proper spacing between items
             # Strip trailing whitespace but add back blank line
@@ -620,11 +675,30 @@ def generate_filtered_latex(parsed_data: Dict[str, Any], selections: Dict[str, A
                 # Add environment closing command if wrapper exists and items were added
                 if environment_wrapper and selected_items:
                     env_close = environment_wrapper['close_command']
-                    logger.info(f"[FILTER] Adding environment closing '{env_close}' for '{section_key}'")
-                    latex_parts.append(env_close)
+                    
+                    # Defensive check: Don't add closing tag if it's already in the section content
+                    # This prevents duplicate closing tags
+                    section_content = section_data.get('full_content', '')
+                    if env_close not in section_content:
+                        logger.info(f"[FILTER] Adding environment closing '{env_close}' for '{section_key}'")
+                        latex_parts.append(env_close)
+                    else:
+                        logger.info(f"[FILTER] Skipping duplicate environment closing '{env_close}' for '{section_key}' (already in content)")
         
         # Add closing (always included)
         closing = latex_blocks.get('closing', '')
+        
+        # Defensive check: Ensure only one \end{document} in closing
+        if closing:
+            end_doc_pattern = r'\\end\s*\{\s*document\s*\}'
+            end_doc_matches = list(re.finditer(end_doc_pattern, closing))
+            
+            if len(end_doc_matches) > 1:
+                # Multiple \end{document} found, keep only the first one
+                first_end_pos = end_doc_matches[0].end()
+                closing = closing[:first_end_pos]
+                logger.warning(f"[FILTER] Found {len(end_doc_matches)} \\end{{document}} tags in closing, keeping only the first one")
+        
         logger.info(f"[FILTER] Adding closing ({len(closing)} chars)")
         latex_parts.append(closing)
         

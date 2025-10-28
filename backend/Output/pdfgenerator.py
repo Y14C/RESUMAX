@@ -39,14 +39,17 @@ from typing import Optional, Tuple
 
 
 def _get_project_root() -> Path:
-    """Get the project root directory (2 levels up from this file)"""
-    if getattr(sys, 'frozen', False):
-        # Running as PyInstaller bundle
-        exe_dir = Path(sys.executable).parent
-        return exe_dir.parent.parent  # Go up to installation root
+    """Get the directory where essentialpackage is located using working directory"""
+    # Use working directory set by electron.cjs (installation root)
+    working_dir = Path(os.getcwd())
+    
+    # In production, essentialpackage is in resources/
+    # In development, it's in project root
+    resources_dir = working_dir / "resources"
+    if resources_dir.exists():
+        return resources_dir  # Production
     else:
-        # Running as script (development)
-        return Path(__file__).parent.parent.parent
+        return working_dir  # Development
 
 
 def _get_tinytex_path() -> Optional[Path]:

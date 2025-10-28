@@ -47,7 +47,7 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-echo    ✓ Frontend built: packaging\frontend-dist\
+echo    ✓ Frontend built: frontend\dist\
 cd ..\packaging
 
 echo [4/4] Packaging Electron app...
@@ -69,9 +69,9 @@ echo ========================================
 echo.
 echo Output: packaging\release\Resumax Setup 1.0.0.exe (~580MB)
 echo.
-echo All build artifacts are in the packaging folder:
-echo - packaging\dist\ResumaxBackend.exe (Backend)
-echo - packaging\frontend-dist\ (React build)
-echo - packaging\release\ (Installer)
+echo All build artifacts:
+echo - packaging\dist\ResumaxBackend\ (Backend folder)
+echo - frontend\dist\ (React build)
+echo - packaging\release-new\ (Installer)
 echo.
 pause

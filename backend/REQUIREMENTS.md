@@ -176,28 +176,32 @@ essentialpackage/
 ### PyInstaller Integration
 
 **Configuration**: `packaging/resumax-backend.spec`
-- Bundles all Python dependencies
-- Includes essential package files
-- Creates standalone `ResumaxBackend.exe`
-- Handles path resolution for bundled dependencies
+- Bundles all Python dependencies in `_internal/` folder
+- Creates standalone `ResumaxBackend/` folder (onedir mode)
+- Essential package handled externally by electron-builder
+- Uses working directory for path resolution
 
 **Production Detection**:
 ```python
-import sys
+import os
+
+# Working directory approach (set by Electron)
+working_dir = Path(os.getcwd())
+resources_dir = working_dir / "resources"
 
 # Detect if running as PyInstaller executable
-if getattr(sys, 'frozen', False):
-    # Production mode - use bundled paths
-    BASE_DIR = Path(sys._MEIPASS)
+if resources_dir.exists():
+    # Production mode - resources in resources/ folder
+    BASE_DIR = resources_dir
     BUNDLED_MODE = True
 else:
     # Development mode - use project paths
-    BASE_DIR = Path(__file__).parent
+    BASE_DIR = working_dir
     BUNDLED_MODE = False
 ```
 
 **Path Resolution Priority**:
-1. **Production**: Bundled paths in `sys._MEIPASS`
+1. **Production**: Resources in `resources/` folder (bundled)
 2. **Development**: Project root `essentialpackage/` folder
 3. **System**: System-installed dependencies
 
@@ -256,24 +260,24 @@ else:
 
 ### For Packaged Electron App:
 
-1. **PyInstaller Build**: Create standalone `ResumaxBackend.exe` with all Python dependencies
+1. **PyInstaller Build**: Create standalone `ResumaxBackend/` folder with all Python dependencies (onedir mode)
 2. **Bundle Essential Package**: Include `essentialpackage/TinyTeX/` and `essentialpackage/Tesseract-OCR/` folders
-3. **Path Resolution**: Backend automatically detects bundled vs system dependencies using `sys.frozen`
+3. **Path Resolution**: Backend uses working directory for resource location
 4. **Environment Variables**: Store API keys securely (not in version control)
 5. **File-based Logging**: Production logging writes to files instead of console
 
 **Build Process**:
 ```bash
-# Build PyInstaller executable
+# Build PyInstaller folder (onedir mode)
 pyinstaller packaging/resumax-backend.spec
 
-# Output: packaging/dist/ResumaxBackend.exe
+# Output: packaging/dist/ResumaxBackend/ (folder with executable and dependencies)
 ```
 
 **Production Features**:
 - No Python installation required for end users
-- All dependencies bundled in single executable
-- Automatic path resolution for bundled dependencies
+- All dependencies bundled in folder structure (onedir mode)
+- Working directory-based path resolution for bundled dependencies
 - File-based logging for production environments
 - Process management via Electron spawn
 
@@ -311,9 +315,9 @@ winget install --id=JohnMacFarlane.Pandoc -e
 cd backend
 python main.py
 
-# 6. Build PyInstaller executable (production)
+# 6. Build PyInstaller folder (production)
 pyinstaller packaging/resumax-backend.spec
-# Output: packaging/dist/ResumaxBackend.exe
+# Output: packaging/dist/ResumaxBackend/ (folder with executable and dependencies)
 ```
 
 Server will start on: `http://localhost:54782`

@@ -13,6 +13,7 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 let mainWindow = null;
 let pythonProcess = null;
+let isQuitting = false;
 
 /**
  * Verify essentialpackage dependencies exist
@@ -55,14 +56,19 @@ function createWindow() {
     minHeight: 600,
     title: 'Resumax',
     icon: path.join(__dirname, 'icon.ico'),
+    fullscreen: false,
+    maximizable: true,
+    minimizable: true,
+    closable: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, // Disable web security for development
-      allowRunningInsecureContent: true,
+      webSecurity: !isDev, // Enable web security in production
+      allowRunningInsecureContent: isDev, // Only allow in development
       preload: path.join(__dirname, 'preload.js'),
       hardwareAcceleration: true,
-      enableWebGL: true
+      enableWebGL: true,
+      devTools: isDev, // Disable devTools in production
     },
     show: false,
     backgroundColor: '#FAFAFA',
@@ -71,12 +77,37 @@ function createWindow() {
   // Remove the menu bar
   mainWindow.removeMenu();
 
+  // Disable F12 and DevTools shortcuts in production
+  if (!isDev) {
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J
+      if (
+        input.control && input.shift && input.key.toLowerCase() === 'i' ||
+        input.control && input.shift && input.key.toLowerCase() === 'c' ||
+        input.control && input.shift && input.key.toLowerCase() === 'j' ||
+        input.key === 'F12'
+      ) {
+        event.preventDefault();
+      }
+      // Disable right-click context menu
+      if (input.button === 2) {
+        event.preventDefault();
+      }
+    });
+  }
+
   // Load the app
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // In production, dist files are unpacked to app.asar.unpacked/dist/
+    // electron.cjs is in app.asar/public/
+    // Need to go to app.asar.unpacked/dist/index.html
+    const unpackedPath = __dirname.replace('app.asar', 'app.asar.unpacked');
+    const indexPath = path.join(unpackedPath, '../dist/index.html');
+    console.log('Loading index.html from:', indexPath);
+    mainWindow.loadFile(indexPath);
   }
 
   // Show window when ready
@@ -87,6 +118,14 @@ function createWindow() {
   // Handle window closed
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  // Handle window close event - prevent default and trigger proper app quit
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      app.quit();
+    }
   });
 
   // Handle external links - open in default browser instead of new Electron window
@@ -100,6 +139,12 @@ function createWindow() {
  * Start Python Flask backend server
  */
 function startPythonBackend() {
+  // Guard: prevent multiple backend spawns
+  if (pythonProcess && !pythonProcess.killed) {
+    console.log('Backend already running, skipping spawn');
+    return;
+  }
+  
   const backendExe = isDev
     ? 'python'  // Dev mode: use Python interpreter
     : path.join(process.resourcesPath, 'backend', 'ResumaxBackend.exe');
@@ -107,7 +152,7 @@ function startPythonBackend() {
   const backendArgs = isDev ? [path.join(__dirname, '../../backend/main.py')] : [];
   const backendCwd = isDev 
     ? path.join(__dirname, '../../') 
-    : path.dirname(process.execPath); // Installation directory
+    : path.dirname(process.resourcesPath); // Installation root (one level up from resources/)
   
   console.log('Starting backend:', backendExe);
   console.log('Backend working directory:', backendCwd);
@@ -134,6 +179,74 @@ function startPythonBackend() {
   
   pythonProcess.on('error', (error) => {
     console.error('Failed to start Python backend:', error);
+  });
+}
+
+/**
+ * Kill Python backend process and all its children (Windows-specific)
+ * Returns a Promise that resolves when the backend is killed
+ */
+function killPythonBackend() {
+  return new Promise((resolve) => {
+    if (!pythonProcess || pythonProcess.killed) {
+      console.log('Backend process already killed or not running');
+      resolve();
+      return;
+    }
+    
+    const pid = pythonProcess.pid;
+    console.log(`Killing backend process tree (PID: ${pid})...`);
+    
+    // Try graceful termination first
+    try {
+      // On Windows, send CTRL_BREAK_EVENT for graceful shutdown
+      pythonProcess.kill('SIGTERM');
+      console.log('Sent SIGTERM signal for graceful shutdown');
+    } catch (error) {
+      console.log('Failed to send SIGTERM, will use force kill:', error.message);
+    }
+    
+    // Wait 2 seconds for graceful shutdown
+    setTimeout(() => {
+      if (pythonProcess && !pythonProcess.killed) {
+        console.log('Graceful shutdown timeout, using force kill...');
+        
+        // Windows-specific: Use taskkill to kill entire process tree
+        const killProcess = spawn('taskkill', ['/F', '/T', '/PID', pid.toString()], {
+          windowsHide: true,
+          shell: false
+        });
+        
+        killProcess.on('close', (code) => {
+          console.log(`Backend process killed with code ${code}`);
+          pythonProcess = null;
+          resolve();
+        });
+        
+        killProcess.on('error', (error) => {
+          console.error('Failed to kill backend process:', error);
+          // Fallback: try regular kill
+          try {
+            pythonProcess.kill('SIGKILL');
+            pythonProcess = null;
+          } catch (e) {
+            console.error('Fallback kill failed:', e);
+          }
+          resolve();
+        });
+        
+        // Timeout protection - force resolve after 3 more seconds
+        setTimeout(() => {
+          console.log('Force kill timeout reached, resolving anyway');
+          pythonProcess = null;
+          resolve();
+        }, 3000);
+      } else {
+        console.log('Backend process terminated gracefully');
+        pythonProcess = null;
+        resolve();
+      }
+    }, 2000);
   });
 }
 
@@ -167,34 +280,24 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
   // Kill Python backend process before quitting
-  if (pythonProcess) {
-    console.log('Terminating backend process...');
-    // Force kill after timeout
-    pythonProcess.kill('SIGTERM');
-    setTimeout(() => {
-      if (pythonProcess && !pythonProcess.killed) {
-        console.log('Force killing backend process...');
-        pythonProcess.kill('SIGKILL');
-      }
-    }, 3000);
-  }
+  await killPythonBackend();
   // Windows-specific: quit when all windows are closed
   app.quit();
 });
 
-app.on('before-quit', () => {
-  // Ensure Python process is killed on app quit
-  if (pythonProcess) {
-    console.log('Terminating backend process...');
-    pythonProcess.kill('SIGTERM');
-    setTimeout(() => {
-      if (pythonProcess && !pythonProcess.killed) {
-        console.log('Force killing backend process...');
-        pythonProcess.kill('SIGKILL');
-      }
-    }, 3000);
+app.on('before-quit', async (event) => {
+  if (!isQuitting) {
+    event.preventDefault();
+    isQuitting = true;
+    
+    // Ensure Python process is killed on app quit
+    await killPythonBackend();
+    
+    // Let the app quit naturally - don't call app.quit() recursively
+    // Force exit after cleanup
+    process.exit(0);
   }
 });
 

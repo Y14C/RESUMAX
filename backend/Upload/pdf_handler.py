@@ -35,6 +35,8 @@ ERROR HANDLING:
 
 from pathlib import Path
 from typing import List, Optional
+import sys
+import os
 import fitz  # PyMuPDF
 import pytesseract
 from PIL import Image
@@ -123,9 +125,9 @@ def extract_text_from_pdf(file_path: str) -> str:
 def _locate_tesseract() -> Optional[str]:
     """
     Locates Tesseract executable with priority order:
-    1. Project-local Tesseract-OCR/ directory (for shipping with app)
+    1. Working directory + resources/essentialpackage/Tesseract-OCR/
     2. Common Windows installation path
-    3. System PATH (default pytesseract behavior)
+    3. System PATH
     
     Internal function - not called from outside this module.
     
@@ -138,19 +140,16 @@ def _locate_tesseract() -> Optional[str]:
     if _tesseract_path_cache is not None:
         return _tesseract_path_cache
     
-    # Get project root directory - handle both dev and production environments
-    if getattr(sys, 'frozen', False):
-        # Running as PyInstaller bundle
-        exe_dir = Path(sys.executable).parent
-        # In PyInstaller bundle, essentialpackage is in the same directory as the exe
-        project_root = exe_dir
-    else:
-        # Running as script (development)
-        current_file = Path(__file__)
-        project_root = current_file.parent.parent.parent
+    # Use working directory set by electron.cjs (installation root)
+    working_dir = Path(os.getcwd())
     
-    # Priority 1: Local Tesseract-OCR in project directory (for shipping)
-    local_tesseract = project_root / "essentialpackage" / "Tesseract-OCR" / "tesseract.exe"
+    # Priority 1: essentialpackage in resources (production) or root (dev)
+    # Try production path first
+    local_tesseract = working_dir / "resources" / "essentialpackage" / "Tesseract-OCR" / "tesseract.exe"
+    if not local_tesseract.exists():
+        # Try development path
+        local_tesseract = working_dir / "essentialpackage" / "Tesseract-OCR" / "tesseract.exe"
+    
     if local_tesseract.exists():
         _tesseract_path_cache = str(local_tesseract)
         return _tesseract_path_cache
