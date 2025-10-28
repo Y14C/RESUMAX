@@ -90,13 +90,6 @@ const LoadingScreen: React.FC<{ progress: number }> = ({ progress }) => {
     animation: 'logoPulse 2s ease-in-out infinite'
   };
 
-  const subtitleStyle: React.CSSProperties = {
-    fontSize: '24px',
-    color: '#b0b0b0',
-    marginBottom: '40px',
-    textAlign: 'center'
-  };
-
   const progressContainerStyle: React.CSSProperties = {
     width: '400px',
     height: '6px',

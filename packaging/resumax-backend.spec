@@ -5,7 +5,10 @@ import sys
 from pathlib import Path
 
 # Get the backend directory - reference the backend folder from packaging location
-backend_dir = Path(__file__).parent.parent / 'backend'
+# SPECPATH is automatically provided by PyInstaller (points to directory containing this spec file)
+spec_dir = Path(SPECPATH)  # This is the packaging/ directory
+project_root = spec_dir.parent  # This is the resumax/ directory
+backend_dir = project_root / 'backend'
 
 block_cipher = None
 
@@ -20,6 +23,8 @@ a = Analysis(
         ('../backend/Model_API/system-prompt.txt', 'Model_API'),
         # Include Section parsers
         ('../backend/Section_parsers', 'Section_parsers'),
+        # Include essentialpackage (Tesseract and TinyTeX)
+        ('../essentialpackage', 'essentialpackage'),
     ],
     hiddenimports=[
         # Flask and web framework
@@ -41,8 +46,8 @@ a = Analysis(
         'docx',
         'docx.shared',
         'docx.enum.text',
-        'pypdf',
-        'pypdf.pdf',
+        'fitz',
+        'pymupdf',
         
         # System and utilities
         'dotenv',
@@ -54,6 +59,12 @@ a = Analysis(
         'io',
         'logging',
         'logging.handlers',
+        'sys',
+        'os',
+        're',
+        'json',
+        'subprocess',
+        'shutil',
         
         # Backend modules
         'Model_API',

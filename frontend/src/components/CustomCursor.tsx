@@ -75,7 +75,7 @@ const CustomCursor: React.FC = () => {
     };
 
     // MutationObserver to detect when the target element is removed from DOM
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((_mutations) => {
       const currentTarget = targetElementRef.current;
       if (!currentTarget) return;
 

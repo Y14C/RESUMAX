@@ -22,7 +22,7 @@ TESSERACT OCR (LAZY LOADING):
     - Most text-based resume PDFs work WITHOUT Tesseract installed
     - Path resolution priority:
         1. {project_root}/essentialpackage/Tesseract-OCR/tesseract.exe (for shipping with app)
-        2. C:\Program Files\Tesseract-OCR\tesseract.exe (system install)
+        2. C:\\Program Files\\Tesseract-OCR\\tesseract.exe (system install)
         3. System PATH
 
 LANGUAGE SUPPORT:
@@ -142,7 +142,8 @@ def _locate_tesseract() -> Optional[str]:
     if getattr(sys, 'frozen', False):
         # Running as PyInstaller bundle
         exe_dir = Path(sys.executable).parent
-        project_root = exe_dir.parent.parent  # Go up to installation root
+        # In PyInstaller bundle, essentialpackage is in the same directory as the exe
+        project_root = exe_dir
     else:
         # Running as script (development)
         current_file = Path(__file__)

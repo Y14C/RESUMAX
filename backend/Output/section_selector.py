@@ -289,7 +289,7 @@ def _split_latex_into_blocks(latex_code: str, parser_output: Dict, format_id: st
 def _extract_subsection_items(section_content: str, subsections: List[str]) -> Tuple[Dict[str, str], dict]:
     """
     Extract individual subsection items from section content.
-    Also detects and stores environment wrappers (like \begin{multicols}...\end{multicols}).
+    Also detects and stores environment wrappers (like \\begin{multicols}...\\end{multicols}).
     
     Args:
         section_content: Full section LaTeX block

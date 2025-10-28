@@ -750,11 +750,11 @@ const SectionSelectorPage: React.FC = () => {
                     const aIndex = parsedData?.section_info.findIndex(s => {
                       const normalizedTitle = s.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
                       return normalizedTitle === a[0];
-                    });
+                    }) ?? -1;
                     const bIndex = parsedData?.section_info.findIndex(s => {
                       const normalizedTitle = s.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
                       return normalizedTitle === b[0];
-                    });
+                    }) ?? -1;
                     
                     // If not found in section_info, put at end
                     const aPos = aIndex === -1 ? 999 : aIndex;
@@ -781,7 +781,7 @@ const SectionSelectorPage: React.FC = () => {
                     
                     {meta.type === 'complex' && parsedData?.latex_blocks?.sections[key]?.items && (
                       <div>
-                        {Object.keys(parsedData.latex_blocks.sections[key].items!).map((itemKey, index) => {
+                        {Object.keys(parsedData.latex_blocks.sections[key].items!).map((_itemKey, index) => {
                           // Get subsection title from parser output
                           const subsectionTitles = getSubsectionTitles(key);
                           const displayText = subsectionTitles[index] || `Item ${index + 1}`;
