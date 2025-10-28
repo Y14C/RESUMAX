@@ -31,6 +31,7 @@
 ### UI and Navigation
 - **react-router-dom**: ^6.30.1 - Client-side routing
 - **animejs**: ^3.2.2 - Animation library
+- **lucide-react**: ^0.548.0 - Icon library for UI components
 
 ## Development Dependencies
 

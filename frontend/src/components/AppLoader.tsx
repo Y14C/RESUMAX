@@ -114,6 +114,23 @@ const LoadingScreen: React.FC<{ progress: number }> = ({ progress }) => {
     textAlign: 'center'
   };
 
+  const disclaimerStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: '20px',
+    maxWidth: '500px',
+    lineHeight: '1.6'
+  };
+
+  const linkStyle: React.CSSProperties = {
+    color: '#3b82f6',
+    textDecoration: 'none',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'color 0.3s ease'
+  };
+
   const getStatusText = (progress: number): string => {
     if (progress < 20) return 'Initializing...';
     if (progress < 40) return 'Loading data...';
@@ -144,6 +161,27 @@ const LoadingScreen: React.FC<{ progress: number }> = ({ progress }) => {
       </div>
       
       <p style={statusStyle}>{getStatusText(progress)}</p>
+      
+      <div style={disclaimerStyle}>
+        <p>
+          Don't have an API key? Don't worry, Google has got your back.<br />
+          Get a free API key from{' '}
+          <a
+            href="https://aistudio.google.com/api-keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={linkStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#06b6d4';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#3b82f6';
+            }}
+          >
+            Google's AI Studio
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

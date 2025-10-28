@@ -787,7 +787,7 @@ const SectionSelectorPage: React.FC = () => {
                           const displayText = subsectionTitles[index] || `Item ${index + 1}`;
                           
                           return (
-                            <div key={index} style={itemStyle} data-magnetic>
+                            <div key={index} style={itemStyle}>
                               <input
                                 type="checkbox"
                                 checked={((selections[key] as { items: number[] })?.items ?? []).includes(index)}

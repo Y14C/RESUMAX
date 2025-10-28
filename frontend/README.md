@@ -230,6 +230,7 @@ The primary application interface with configuration and file upload capabilitie
 - AI provider and model selection with tabbed interface
 - **API Key Validation**: Real-time testing before saving configuration
 - File upload with drag-and-drop support
+- **FAQ Accordion**: Interactive FAQ section with expand/collapse animations
 - Configuration validation and error handling
 - Animated UI transitions and feedback
 
@@ -239,6 +240,7 @@ The primary application interface with configuration and file upload capabilitie
 - **API Testing State**: Loading states and validation feedback
 - File upload session tracking
 - Configuration panel visibility control
+- Accordion state for FAQ expand/collapse
 
 **Configuration Flow:**
 1. Provider Selection → Model Selection → API Key Input
@@ -246,6 +248,13 @@ The primary application interface with configuration and file upload capabilitie
 3. Auto-advance between tabs on selection
 4. Configuration validation before processing
 5. Persistent storage via backend API
+
+**FAQ Accordion:**
+- Interactive FAQ section with expand/collapse animations
+- Multi-layered glow effects on open items (matching custom cursor style)
+- Smooth height transitions for content reveal
+- Chevron icon rotation animation
+- Questions about API keys, offline usage, and supported formats
 
 #### TemplateSelection.tsx - Template Picker
 
@@ -633,7 +642,8 @@ Desktop application features and system integration.
 **Animation and UI:**
 ```json
 {
-  "animejs": "^3.2.2"
+  "animejs": "^3.2.2",
+  "lucide-react": "^0.548.0"
 }
 ```
 

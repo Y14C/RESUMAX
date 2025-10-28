@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import LiquidButton from '../components/LiquidButton';
 import { uploadFile } from '../utils/api';
 import { 
@@ -46,6 +47,10 @@ const ResumaxUI: React.FC = () => {
   const [isTestingApi, setIsTestingApi] = useState(false);
   const [apiTestMessage, setApiTestMessage] = useState('');
   
+  // Accordion state
+  const [openAccordionItems, setOpenAccordionItems] = useState<number[]>([]);
+  const accordionRef = useRef<HTMLDivElement>(null);
+  
   // Refs for click-outside detection
   const configPanelRef = useRef<HTMLDivElement>(null);
   const uploadPanelRef = useRef<HTMLDivElement>(null);
@@ -63,6 +68,87 @@ const ResumaxUI: React.FC = () => {
     { id: 'model', label: 'Model' },
     { id: 'api', label: 'API' }
   ];
+
+  // Accordion items
+  const accordionItems: Array<{ question: string; answer: React.ReactNode }> = [
+    {
+      question: "Can I just input all my information in an unstructured format?",
+      answer: "Yes! Resumax is designed to handle unstructured data. Simply provide your information in any format, and Resumax will intelligently parse and organize it into a professional resume for you."
+    },
+    {
+      question: "How do I get an API key?",
+      answer: (
+        <span>
+          You can get a free Gemini API key from{' '}
+          <a 
+            href="https://aistudio.google.com/api-keys" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              color: '#3b82f6',
+              textDecoration: 'underline',
+              cursor: 'none',
+              transition: 'opacity 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '0.7';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '1';
+            }}
+          >
+            Google AI Studio
+          </a>
+        </span>
+      )
+    },
+    {
+      question: "Is my API key safe? Where is it stored?",
+      answer: "Your API key is stored locally on your device and never uploaded to our servers or the cloud. You maintain complete control and can delete it at any time."
+    },
+    {
+      question: "Can I use Resumax without internet?",
+      answer: "Yes! Resumax can work with local AI models for completely offline operation. Simply download free models through LM Studio on your computer, and Resumax will utilize them instead of cloud services. Your resume data never leaves your device."
+    },
+    {
+      question: "What resume formats can I upload, and what will I get as output?",
+      answer: "Resumax accepts PDF and plain text files. After parsing your information, you can choose from one of 4 professional templates (with more coming soon), and receive your resume as both a downloadable PDF and LaTeX code."
+    }
+  ];
+
+  const toggleAccordionItem = (index: number) => {
+    const wasOpen = openAccordionItems.includes(index);
+    
+    setOpenAccordionItems(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+
+    // Auto-scroll to FAQ section when accordion is opened (not closed)
+    if (!wasOpen) {
+      setTimeout(() => {
+        if (accordionRef.current) {
+          const element = accordionRef.current;
+          const rect = element.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          
+          // Check if FAQ section is not fully visible
+          const isNotFullyVisible = 
+            rect.top < 0 || // Too far up
+            rect.bottom > windowHeight; // Too far down
+          
+          if (isNotFullyVisible) {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+              inline: 'nearest'
+            });
+          }
+        }
+      }, 100); // Small delay to allow accordion to expand
+    }
+  };
   // Load providers from preloaded data (should be ready since AppLoader waited)
   useEffect(() => {
     const loadProviders = () => {
@@ -1465,6 +1551,103 @@ const ResumaxUI: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* FAQ Accordion */}
+        <div 
+          ref={accordionRef}
+          style={{
+            ...interactiveStyle,
+            width: '100%',
+            maxWidth: '800px',
+            marginTop: '48px',
+            marginBottom: '32px'
+          }}
+        >
+          <h3 style={{
+            fontSize: '32px',
+            fontWeight: '600',
+            background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textAlign: 'center',
+            marginBottom: '24px'
+          }}>
+            Frequently Asked Questions
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {accordionItems.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  background: '#0a0a0a',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <button
+                  onClick={() => toggleAccordionItem(index)}
+                  style={{
+                    width: '100%',
+                    padding: '20px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#ffffff',
+                    cursor: 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <span style={{
+                    fontSize: '17px',
+                    fontWeight: '500',
+                    color: '#ffffff'
+                  }}>
+                    {item.question}
+                  </span>
+                  <ChevronDown
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      color: '#ffffff',
+                      transition: 'transform 0.3s ease',
+                      transform: openAccordionItems.includes(index) ? 'rotate(180deg)' : 'rotate(0deg)',
+                      flexShrink: 0,
+                      marginLeft: '16px'
+                    }}
+                  />
+                </button>
+                <div
+                  style={{
+                    maxHeight: openAccordionItems.includes(index) ? '500px' : '0',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out'
+                  }}
+                >
+                  <div style={{
+                    padding: '0 24px 20px 24px',
+                    fontSize: '16px',
+                    lineHeight: '1.6',
+                    color: '#ffffff'
+                  }}>
+                    {item.answer}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       {/* Footer */}
       <footer style={footerStyle}>
